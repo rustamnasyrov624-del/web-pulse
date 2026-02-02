@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PULSE 1.618 | Reality Show</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600&family=Space+Grotesk:wght@300;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=9.0">
+    <style>
+        /* Inline critical CSS to prevent flash */
+        body {
+            background-color: #050505;
+            margin: 0;
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="noise-overlay"></div>
+    <div class="bg-gradient"></div>
+
+    <main class="container">
+
+        <!-- HEADER -->
+        <header class="hero-section">
+            <div class="hero-content">
+                <div class="brand">
+                    <!-- Custom Logo -->
+                    <img src="assets/logo.png" alt="1.618" class="logo-icon-img">
+                    <span class="logo-text">1.618</span>
+                    <span class="status-dot"></span> <span class="status-text">LIVE</span>
+                </div>
+                <h1 class="main-title">
+                    <div class="pulse-line-container">
+                        <svg class="pulse-svg" viewBox="0 0 300 100" preserveAspectRatio="none">
+                            <path
+                                d="M0,50 L50,50 L60,30 L70,70 L80,50 L120,50 L130,20 L140,80 L150,50 L200,50 L210,10 L220,90 L230,50 L300,50" />
+                        </svg>
+                    </div>
+                    <span>PULSE 1.618</span>
+                </h1>
+                <p class="subtitle">От -9,000,000₽ до финансовой свободы.<br>Реалити-шоу без цензуры.</p>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="label">DATE</span>
+                        <span class="value" id="current-date">02.02.2026</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">DAY</span>
+                        <span class="value">33/365</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="glass-card main-card">
+                    <div class="card-glow"></div>
+                    <h3>PROP TRADING</h3>
+                    <div class="challenge-status active">
+                        <div class="status-header">
+                            <span class="phase">Challenge #2</span>
+                            <span class="live-badge">ACTIVE</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <!-- Negative realization visualization -->
+                            <div class="progress-bar" style="width: 3%; background: #ff3b30;"></div>
+                        </div>
+                        <div class="metrics-row">
+                            <div class="metric">
+                                <span class="m-label">Account Age</span>
+                                <span class="m-value">8 Days</span>
+                            </div>
+                            <div class="metric">
+                                <span class="m-label">Week Realized</span>
+                                <span class="m-value negative" style="color: #ff3b30">-$1,548</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="challenge-history">
+                        <div class="history-item failed" style="opacity: 0.5;">
+                            <span class="h-name">Challenge #1:</span>
+                            <span class="h-res">FAILED (Dec '25)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- DASHBOARD GRID (Restored & Polished) -->
+        <section class="dashboard-grid">
+
+            <!-- DEEP WORK (Overachieved) -->
+            <article class="glass-card stat-card">
+                <div class="card-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00ff9d" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                </div>
+                <h3>Глубокая Работа</h3>
+                <div class="big-number" style="color: #00ff9d; text-shadow: 0 0 10px rgba(0,255,157,0.3);">26.1<span
+                        class="unit">ч</span></div>
+                <div class="progress-sm">
+                    <!-- 26.1 > 25 Goal = 100% + Glow -->
+                    <div class="bar" style="width: 100%; box-shadow: 0 0 8px #00ff9d;"></div>
+                </div>
+                <div class="sub-text">План: 25ч+ (Выполнено)</div>
+                <div class="week-stat" style="font-family: 'Inter', sans-serif;">Avg: 3.7ч/день <span
+                        class="status-dot-sm"></span></div>
+            </article>
+
+            <!-- BLOG / SUBS -->
+            <article class="glass-card stat-card">
+                <div class="card-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00ff9d" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                    </svg>
+                </div>
+                <h3>Подписчики</h3>
+                <div class="big-number">76</div>
+                <div class="progress-sm">
+                    <div class="bar" style="width: 38%"></div>
+                </div>
+                <div class="sub-text">Цель Q1: 200</div>
+                <div class="delta-stat" style="color: #ff3b30">-1 за неделю</div>
+            </article>
+
+            <!-- DEBT / FINANCE (Q1 FOCUS) -->
+            <article class="glass-card stat-card">
+                <div class="card-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00ff9d" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                        <line x1="1" y1="10" x2="23" y2="10"></line>
+                    </svg>
+                </div>
+                <h3>Цель Q1: Долги</h3>
+                <div class="big-number" style="color: #00ff9d">20<span class="unit">k</span> <span
+                        style="font-size:0.4em; color:#666;">/ 300k</span></div>
+                <div class="progress-sm">
+                    <!-- 20k / 300k = 6.6% -->
+                    <div class="bar" style="width: 6.6%"></div>
+                </div>
+                <div class="sub-text" style="display: flex; justify-content: space-between;">
+                    <span>Прогресс Q1</span>
+                    <span>6.6%</span>
+                </div>
+                <div class="total-debt" style="margin-top:10px; font-size:0.9em; color:#ddd; font-weight: 500;">
+                    Глобальный остаток: 8.98M</div>
+            </article>
+
+        </section>
+
+
+
+        <!-- NAVIGATION LINKS -->
+        <section class="content-section">
+            <h2 class="section-title">База Знаний</h2>
+            <div class="links-list">
+                <a href="#" class="link-card">
+                    <span class="link-tag">Start</span>
+                    <span class="link-title">Итоги 2025: Честный разбор</span>
+                    <span class="link-arrow">→</span>
+                </a>
+                <a href="#" class="link-card">
+                    <span class="link-tag">Mindset</span>
+                    <span class="link-title">EDGE: Дисциплина важнее таланта</span>
+                    <span class="link-arrow">→</span>
+                </a>
+                <a href="#" class="link-card highlight">
+                    <span class="link-tag fire">New</span>
+                    <span class="link-title">Когда все ноют про ИИ (23.01)</span>
+                    <span class="link-arrow">→</span>
+                </a>
+                <a href="#" class="link-card">
+                    <span class="link-tag">Trading</span>
+                    <span class="link-title">Шкура на кону: Серия постов</span>
+                    <span class="link-arrow">→</span>
+                </a>
+            </div>
+
+        </section>
+
+        <footer>
+            <div class="footer-content">
+                <p>© 2026 NSRV 1.618. All systems operational.</p>
+                <div class="socials">
+                    <a href="https://t.me/nsrv_1618">Telegram Channel</a>
+                    <a href="#">Contact</a>
+                </div>
+            </div>
+        </footer>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
