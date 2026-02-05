@@ -1,0 +1,61 @@
+{
+  "updated_at": "2026-02-05T09:13:43.070393Z",
+  "stats": {
+    "total_deep_work_hours": 1.4,
+    "current_streak_days": 11,
+    "this_week_hours": 0.2,
+    "today_sessions": 4
+  },
+  "recent_sessions": [
+    {
+      "date": "2026-02-05",
+      "duration_minutes": 1,
+      "completed_at": "2026-02-05T11:46:29.383818"
+    },
+    {
+      "date": "2026-02-05",
+      "duration_minutes": 1,
+      "completed_at": "2026-02-05T10:15:38.387739"
+    },
+    {
+      "date": "2026-02-05",
+      "duration_minutes": 1,
+      "completed_at": "2026-02-05T07:03:51.730480"
+    },
+    {
+      "date": "2026-02-05",
+      "duration_minutes": 1,
+      "completed_at": "2026-02-05T05:52:07.591160"
+    },
+    {
+      "date": "2026-02-04",
+      "duration_minutes": 1,
+      "completed_at": "2026-02-04T02:51:35.893006"
+    },
+    {
+      "date": "2026-02-04",
+      "duration_minutes": 1,
+      "completed_at": "2026-02-04T01:47:55.750004"
+    },
+    {
+      "date": "2026-02-04",
+      "duration_minutes": 1,
+      "completed_at": "2026-02-04T00:47:21.613386"
+    },
+    {
+      "date": "2026-02-03",
+      "duration_minutes": 1,
+      "completed_at": "2026-02-03T23:21:19.567608"
+    },
+    {
+      "date": "2026-02-03",
+      "duration_minutes": 1,
+      "completed_at": "2026-02-03T17:14:19.801245"
+    },
+    {
+      "date": "2026-02-02",
+      "duration_minutes": 1,
+      "completed_at": "2026-02-02T06:55:55.732738"
+    }
+  ]
+}
