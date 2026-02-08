@@ -14,7 +14,7 @@
   "challenges": [
     {
       "id": "001",
-      "name": "SweetPepper",
+      "name": "SpiceProp",
       "status": "failed",
       "pnl": "-9.07%"
     },
@@ -34,7 +34,7 @@
     }
   ],
   "debt": {
-    "current": 0,
+    "current": 20,
     "total": 300,
     "global": "8.98M"
   }
