@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const { data: challenges, error } = await supabase
                 .from('challenges')
                 .select('*')
-                .order('created_at', { ascending: true });
+                .order('id', { ascending: true });
             
             if (error) throw error;
             
