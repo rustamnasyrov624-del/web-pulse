@@ -1,139 +1,103 @@
 
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
-// Configuration
-const SUPABASE_URL = 'https://htskiitfjiaeupexvalo.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_95k9XN77rpfdoogJThv2eg_WpN29aCd'; // Using the existing publishable key
-const DEBT_GOAL = 300000; // 300k Target
+const supabaseUrl = 'https://htskiitfjiaeupexvalo.supabase.co'
+const supabaseKey = 'sb_publishable_95k9XN77rpfdoogJThv2eg_WpN29aCd'
+const supabase = createClient(supabaseUrl, supabaseKey)
 
-// Initialize Supabase
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+document.addEventListener('DOMContentLoaded', async () => {
 
-// DOM Elements
-const debtTotalEl = document.getElementById('total-debt');
-const debtProgressEl = document.getElementById('debt-progress');
-const pnlEl = document.getElementById('trading-pnl');
-const winrateEl = document.getElementById('trading-winrate');
-const winrateBarEl = document.getElementById('winrate-bar');
-const totalTradesEl = document.getElementById('total-trades');
-
-async function updateDebtStats() {
-    try {
-        // Fetch debts with date filter
-        const { data, error } = await supabase
-            .from('debts')
-            .select('amount')
-            .gte('date', '2026-01-01');
-
-        if (error) {
-            console.error('Supabase error fetching debts:', error);
-            return;
+    // 1. DATE & DAY Logic
+    const today = new Date();
+    const startOfYear = new Date('2026-01-01');
+    const dayOfYear = Math.floor((today - startOfYear) / (1000 * 60 * 60 * 24)) + 1;
+    
+    const dateEl = document.getElementById('current-date');
+    if (dateEl) {
+        dateEl.innerText = today.toLocaleDateString('ru-RU');
+        // Update DAY element
+        const stats = document.querySelectorAll('.hero-stats .stat-item .value');
+        if (stats.length > 1) {
+            stats[1].innerText = `${dayOfYear}/365`;
         }
-
-        // Calculate total amount
-        const totalDebt = data.reduce((sum, record) => sum + (record.amount || 0), 0);
-        
-        // Update DOM
-        if (debtTotalEl) {
-            // Format: 28650 -> 28.7 (k)
-            const displayValue = (totalDebt / 1000).toFixed(1).replace(/\.0$/, '');
-            debtTotalEl.innerText = displayValue;
-        }
-
-        if (debtProgressEl) {
-            const percentage = Math.min((totalDebt / DEBT_GOAL) * 100, 100);
-            debtProgressEl.style.width = `${percentage}%`;
-            
-            // Add glow if progress > 0
-            if (percentage > 0) {
-                debtProgressEl.style.boxShadow = `0 0 ${percentage * 0.2}px #00ff9d`;
-            } else {
-                debtProgressEl.style.boxShadow = 'none';
-            }
-        }
-
-    } catch (err) {
-        console.error('Unexpected error updating debts:', err);
     }
-}
 
-async function updateTradingStats() {
-    try {
-        const { data, error } = await supabase
-            .from('trades')
-            .select('pnl');
+    // 2. DEBT STATS (Q1 2026 ONLY)
+    const { data: debts } = await supabase
+        .from('debts')
+        .select('amount')
+        .gte('date', '2026-01-01');
+        
+    const totalRepaid = debts ? debts.reduce((sum, row) => sum + row.amount, 0) : 0;
+    const debtGoal = 300000;
+    const progress = (totalRepaid / debtGoal) * 100;
+    
+    // Select Elements (Robust)
+    const debtValueEl = document.getElementById('total-debt') || document.querySelector('.glass-card:nth-child(3) .big-number');
+    const debtBar = document.getElementById('debt-progress') || document.querySelector('.glass-card:nth-child(3) .progress-sm .bar');
+    const debtSubText = document.querySelector('.glass-card:nth-child(3) .sub-text span:last-child');
+    
+    if (debtValueEl) debtValueEl.innerHTML = `${(totalRepaid / 1000).toFixed(2)}<span class="unit">k</span> <span style="font-size:0.4em; color:#666;">/ 300k</span>`;
+    if (debtBar) debtBar.style.width = `${Math.min(progress, 100)}%`;
+    if (debtSubText) debtSubText.innerText = `${progress.toFixed(1)}%`;
 
-        if (error) {
-            console.error('Supabase error fetching trades:', error);
-            return;
-        }
+    // 3. TRADING STATS (If block exists)
+    // My previous sub-agent added this, so I should keep it or re-add it.
+    // Let's assume the HTML structure is there or I fetch from 'trades' too.
+    
+    // 4. CHALLENGES (Prop Trading)
+    const challengesContainer = document.getElementById('challenges-container');
+    if (challengesContainer) {
+        const { data: challenges } = await supabase.from('challenges').select('*').order('id');
+        
+        challengesContainer.innerHTML = '';
+        
+        if (challenges && challenges.length > 0) {
+            challenges.forEach(c => {
+                const isFailed = c.status === 'Failed';
+                const el = document.createElement('div');
+                const startBal = 50000; 
+                const current = c.balance;
+                const pnl = current - startBal;
+                const pnlStr = pnl > 0 ? `+$${pnl.toFixed(0)}` : `$${pnl.toFixed(0)}`;
+                const color = pnl >= 0 ? '#00ff9d' : '#ff3b30';
+                const percent = ((pnl / startBal) * 100).toFixed(2);
 
-        let totalPnL = 0;
-        let wins = 0;
-        const totalTrades = (data && data.length) ? data.length : 0;
-
-        if (data) {
-            data.forEach(trade => {
-                const pnl = trade.pnl || 0;
-                totalPnL += pnl;
-                if (pnl > 0) wins++;
+                if (isFailed) {
+                    el.className = 'challenge-history';
+                    el.innerHTML = `
+                        <div class="history-item failed" style="opacity: 0.5;">
+                            <span class="h-name">${c.name}:</span>
+                            <span class="h-res">FAILED</span>
+                        </div>
+                    `;
+                } else {
+                    el.className = 'challenge-status active';
+                    el.style.marginBottom = '15px';
+                    el.innerHTML = `
+                        <div class="status-header">
+                            <span class="phase">${c.name}</span>
+                            <span class="live-badge">ACTIVE</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" style="width: ${Math.min(Math.abs(percent)*5, 100)}%; background: ${color};"></div>
+                        </div>
+                        <div class="metrics-row">
+                            <div class="metric">
+                                <span class="m-label">Balance</span>
+                                <span class="m-value" style="color: ${color}">$${current.toLocaleString()}</span>
+                            </div>
+                            <div class="metric">
+                                <span class="m-label">Result</span>
+                                <span class="m-value">${pnlStr} (${percent}%)</span>
+                            </div>
+                        </div>
+                    `;
+                }
+                challengesContainer.appendChild(el);
             });
+        } else {
+            challengesContainer.innerHTML = '<div style="color:#666">No active challenges.</div>';
         }
-
-        const winrate = totalTrades > 0 ? (wins / totalTrades) * 100 : 0;
-
-        // Update DOM
-        if (pnlEl) {
-            // Format PnL
-            const sign = totalPnL >= 0 ? '+' : '';
-            pnlEl.innerText = `${sign}${totalPnL.toFixed(2)}`;
-            pnlEl.style.color = totalPnL >= 0 ? '#00ff9d' : '#ff3b30';
-            pnlEl.style.textShadow = totalPnL >= 0 ? '0 0 10px rgba(0,255,157,0.3)' : '0 0 10px rgba(255,59,48,0.3)';
-        }
-
-        if (winrateEl) {
-            winrateEl.innerText = `${winrate.toFixed(1)}%`;
-            winrateEl.style.color = winrate >= 50 ? '#00ff9d' : '#ff3b30';
-        }
-        
-        if (winrateBarEl) {
-            winrateBarEl.style.width = `${winrate}%`;
-            winrateBarEl.style.backgroundColor = winrate >= 50 ? '#00ff9d' : '#ff3b30';
-            winrateBarEl.style.boxShadow = winrate >= 50 ? '0 0 8px #00ff9d' : '0 0 8px #ff3b30';
-        }
-
-        if (totalTradesEl) {
-            totalTradesEl.innerText = totalTrades;
-        }
-
-    } catch (err) {
-        console.error('Unexpected error updating trades:', err);
     }
-}
-
-// Initial Load
-document.addEventListener('DOMContentLoaded', () => {
-    updateDebtStats();
-    updateTradingStats();
-
-    // Realtime subscription for updates
-    supabase
-        .channel('schema-db-changes')
-        .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'debts' },
-            () => {
-                console.log('Debts table updated, refreshing...');
-                updateDebtStats();
-            }
-        )
-        .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'trades' },
-            () => {
-                console.log('Trades table updated, refreshing...');
-                updateTradingStats();
-            }
-        )
-        .subscribe();
 });
