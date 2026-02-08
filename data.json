@@ -1,0 +1,41 @@
+{
+  "lastUpdate": "08.02.2026",
+  "dayOfYear": 39,
+  "deepWork": {
+    "hours": 22.0,
+    "goal": 25,
+    "status": "warning"
+  },
+  "blog": {
+    "subscribers": 76,
+    "goal": 200,
+    "change": "-4"
+  },
+  "challenges": [
+    {
+      "id": "001",
+      "name": "SweetPepper",
+      "status": "failed",
+      "pnl": "-9.07%"
+    },
+    {
+      "id": "002",
+      "name": "SpiceProp",
+      "status": "active",
+      "pnl": "+$412",
+      "progress": 10.3
+    },
+    {
+      "id": "003",
+      "name": "FundingPips",
+      "status": "active",
+      "pnl": "-$300",
+      "progress": -0.6
+    }
+  ],
+  "debt": {
+    "current": 0,
+    "total": 300,
+    "global": "8.98M"
+  }
+}
