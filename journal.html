@@ -16,6 +16,7 @@
             margin: 0;
             opacity: 0;
             animation: fadeIn 0.5s forwards;
+            -webkit-tap-highlight-color: transparent;
         }
         @keyframes fadeIn { to { opacity: 1; } }
         
@@ -23,6 +24,28 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 40px 20px;
+        }
+
+        @media (max-width: 768px) {
+            .journal-container {
+                padding: 20px 15px;
+            }
+            h1 {
+                font-size: 2.2rem !important; /* Force smaller size */
+            }
+            .subtitle {
+                font-size: 0.9rem !important;
+            }
+            .big-number {
+                font-size: 1.5rem !important;
+            }
+            .sub-text {
+                font-size: 0.75rem !important;
+            }
+            .chart-container {
+                height: 50vh !important;
+                padding: 10px !important;
+            }
         }
 
         .chart-container {
@@ -53,8 +76,15 @@
 
         .controls {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .controls::-webkit-scrollbar {
+            display: none;
         }
 
         .filter-btn {
@@ -66,6 +96,9 @@
             cursor: pointer;
             font-family: var(--font-body);
             transition: all 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
+            font-size: 0.85rem;
         }
 
         .filter-btn:hover, .filter-btn.active {
