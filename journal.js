@@ -66,8 +66,17 @@ async function fetchTrades() {
     }
 }
 
-async function  initJournal() {
+async function initJournal() {
     allTrades = await fetchTrades();
+    
+    // Normalize Account Names (Merge "SpiceProp #001" into "SpiceProp #001 (Failed)")
+    if (allTrades && allTrades.length > 0) {
+        allTrades.forEach(t => {
+            if (t.account_id === 'SpiceProp #001') {
+                t.account_id = 'SpiceProp #001 (Failed)';
+            }
+        });
+    }
     
     // Calculate cumulative PnL
     let cumulative = 0;
