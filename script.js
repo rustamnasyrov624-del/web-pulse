@@ -23,7 +23,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // 2. DEBT STATS (Q1 2026 ONLY)
+    // 2. STATIC UI UPDATES (Deep Work & Subs) - RUN FIRST
+    // Ensures visual feedback immediately, independent of Supabase calls
+    const deepWorkValEl = document.getElementById('deep-work-val');
+    const deepWorkBarEl = document.getElementById('deep-work-bar');
+    if (deepWorkValEl && deepWorkBarEl) {
+        const val = parseFloat(deepWorkValEl.innerText) || 0;
+        const goal = 25; // Hardcoded goal from HTML
+        const progress = Math.min((val / goal) * 100, 100);
+        
+        deepWorkBarEl.style.width = `${progress}%`;
+        if (progress >= 100) {
+            deepWorkBarEl.style.backgroundColor = '#00ff9d';
+            deepWorkBarEl.style.boxShadow = '0 0 10px #00ff9d';
+        }
+    }
+
+    const subsValEl = document.getElementById('subs-val');
+    const subsBarEl = document.getElementById('subs-bar');
+    if (subsValEl && subsBarEl) {
+        const val = parseInt(subsValEl.innerText) || 0;
+        const goal = 200;
+        const progress = Math.min((val / goal) * 100, 100);
+        subsBarEl.style.width = `${progress}%`;
+    }
+
+    // 3. DEBT STATS (Q1 2026 ONLY)
     try {
         const { data: debts } = await supabase
             .from('debts')
@@ -150,27 +175,5 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Error fetching challenges:', err);
             challengesContainer.innerHTML = `<div style="color:#ff3b30; font-size:0.8rem;">Error: ${err.message || err}</div>`;
         }
-    // 5. DEEP WORK & SUBS (Simple Fix for now)
-    const deepWorkValEl = document.getElementById('deep-work-val');
-    const deepWorkBarEl = document.getElementById('deep-work-bar');
-    if (deepWorkValEl && deepWorkBarEl) {
-        const val = parseFloat(deepWorkValEl.innerText);
-        const goal = 25; // Hardcoded goal from HTML
-        const progress = Math.min((val / goal) * 100, 100);
-        
-        deepWorkBarEl.style.width = `${progress}%`;
-        if (progress >= 100) {
-            deepWorkBarEl.style.backgroundColor = '#00ff9d';
-            deepWorkBarEl.style.boxShadow = '0 0 10px #00ff9d';
-        }
-    }
-
-    const subsValEl = document.getElementById('subs-val');
-    const subsBarEl = document.getElementById('subs-bar');
-    if (subsValEl && subsBarEl) {
-        const val = parseInt(subsValEl.innerText);
-        const goal = 200;
-        const progress = Math.min((val / goal) * 100, 100);
-        subsBarEl.style.width = `${progress}%`;
     }
 });
