@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Journal | PULSE 1.618</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=9.2">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #050505;
+            margin: 0;
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+        @keyframes fadeIn { to { opacity: 1; } }
+        
+        .journal-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 60vh;
+            width: 100%;
+            margin-top: 20px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: color 0.2s;
+            font-family: var(--font-heading);
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.05em;
+        }
+        
+        .back-btn:hover {
+            color: var(--accent-green);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: var(--font-body);
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: rgba(0, 255, 157, 0.1);
+            color: var(--accent-green);
+            border-color: var(--accent-green);
+            box-shadow: 0 0 10px rgba(0, 255, 157, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="noise-overlay"></div>
+    <div class="bg-gradient"></div>
+
+    <main class="journal-container">
+        <a href="index.html" class="back-btn">← Dashboard</a>
+        
+        <header style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px;">
+            <div>
+                <h1 style="font-size: 3rem; margin-bottom: 5px;">Equity Curve</h1>
+                <p class="subtitle" style="margin-bottom: 0;">Performance Analytics</p>
+            </div>
+            <div style="text-align: right;">
+                 <div class="big-number" style="font-size: 2rem; color: #00ff9d" id="total-pnl-display">$0.00</div>
+                 <div class="sub-text">Total PnL</div>
+            </div>
+        </header>
+
+        <section class="glass-card main-card">
+            <div class="controls" id="account-filters">
+                <button class="filter-btn active" data-filter="all">All Accounts</button>
+                <!-- Dynamic buttons will be added here -->
+            </div>
+            <div class="chart-container">
+                <canvas id="equityChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Recent Trades Table -->
+        <section class="glass-card stat-card" style="margin-top: 30px;">
+            <h3>Recent Trades</h3>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; margin-top: 15px; color: var(--text-secondary); font-size: 0.9rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--card-border); text-align: left;">
+                            <th style="padding: 10px;">Date</th>
+                            <th style="padding: 10px;">Symbol</th>
+                            <th style="padding: 10px;">Type</th>
+                            <th style="padding: 10px;">PnL</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trades-table-body">
+                        <!-- Dynamic rows -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <script type="module" src="journal.js"></script>
+</body>
+</html>
