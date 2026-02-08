@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } catch (err) {
             console.error('Error fetching challenges:', err);
-            challengesContainer.innerHTML = '<div style="color:#666; font-size:0.9rem;">Error loading challenges.</div>';
+            challengesContainer.innerHTML = `<div style="color:#ff3b30; font-size:0.8rem;">Error: ${err.message || err}</div>`;
         }
     }
 });
