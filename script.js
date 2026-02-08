@@ -147,4 +147,65 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     `;
     document.head.appendChild(styleSheet);
+
+    // --- SUPABASE INTEGRATION ---
+    const supabaseUrl = 'https://htskiitfjiaeupexvalo.supabase.co';
+    const supabaseKey = 'sb_publishable_95k9XN77rpfdoogJThv2eg_WpN29aCd';
+    
+    // Initialize Supabase (assuming UMD build exposes 'supabase' global)
+    // If using the CDN provided, it likely exposes 'supabase' object
+    const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    async function updateDebtStats() {
+        try {
+            const { data, error } = await _supabase
+                .from('debts')
+                .select('amount');
+
+            if (error) throw error;
+
+            // Calculate total
+            const total = data.reduce((sum, record) => sum + (record.amount || 0), 0);
+            
+            // Update DOM
+            const debtElement = document.getElementById('total-debt');
+            const progressBar = document.getElementById('debt-progress');
+            const GOAL = 300000; // 300k
+
+            if (debtElement) {
+                // Format: 20000 -> 20. 20500 -> 20.5
+                const displayValue = (total / 1000).toFixed(1).replace(/\.0$/, '');
+                debtElement.innerText = displayValue;
+            }
+
+            if (progressBar) {
+                const percentage = Math.min((total / GOAL) * 100, 100);
+                progressBar.style.width = `${percentage}%`;
+                
+                // Add glow if progress is significant
+                if (percentage > 0) {
+                    progressBar.style.boxShadow = `0 0 ${percentage * 0.2}px #00ff9d`;
+                }
+            }
+
+        } catch (err) {
+            console.error('Supabase error:', err);
+        }
+    }
+
+    // Initial Fetch
+    updateDebtStats();
+
+    // Realtime Subscription
+    _supabase
+        .channel('debts-changes')
+        .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'debts' },
+            () => {
+                console.log('Debts updated, refreshing stats...');
+                updateDebtStats();
+            }
+        )
+        .subscribe();
 });
