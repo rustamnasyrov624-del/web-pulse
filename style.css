@@ -532,16 +532,25 @@ footer {
 }
 
 @media (max-width: 768px) {
+    .container {
+        padding-bottom: 120px; /* Space for bottom browser bar */
+    }
+
     .hero-section {
         grid-template-columns: 1fr;
     }
 
-    .glitch-title {
-        font-size: 3rem;
-    }
-
     .dashboard-grid {
         grid-template-columns: 1fr;
+        gap: 15px; /* Smaller gap */
+    }
+    
+    .stat-card {
+        padding: 20px; /* More compact */
+    }
+    
+    .big-number {
+        font-size: 2rem; /* Reduce form 2.5rem */
     }
 }
 
