@@ -101,30 +101,42 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 3. TRADING STATS
     try {
-        const { data: trades } = await supabase.from('trades').select('pnl');
+        const { data: trades } = await supabase.from('trades').select('pnl, date');
         
         if (trades) {
+            const now = new Date();
+            const day = now.getDay();
+            const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+            const startOfWeek = new Date(now.setDate(diff));
+            startOfWeek.setHours(0,0,0,0);
+
+            let weeklyPnL = 0;
             let totalPnL = 0;
-            let wins = 0;
+            let totalWins = 0;
             const totalTrades = trades.length;
 
             trades.forEach(t => {
-                totalPnL += (t.pnl || 0);
-                if ((t.pnl || 0) > 0) wins++;
+                const pnl = parseFloat(t.pnl) || 0;
+                totalPnL += pnl;
+                if (pnl > 0) totalWins++;
+                if (new Date(t.date) >= startOfWeek) {
+                    weeklyPnL += pnl;
+                }
             });
 
-            const winrate = totalTrades > 0 ? (wins / totalTrades) * 100 : 0;
+            const winrate = totalTrades > 0 ? (totalWins / totalTrades) * 100 : 0;
 
             const pnlEl = document.getElementById('trading-pnl');
             const winrateEl = document.getElementById('trading-winrate');
             const winrateBarEl = document.getElementById('winrate-bar');
             const totalTradesEl = document.getElementById('total-trades');
+            const tradingCard = pnlEl.closest('.stat-card');
 
             if (pnlEl) {
-                 const sign = totalPnL >= 0 ? '+' : '';
-                 pnlEl.innerText = `${sign}${totalPnL.toFixed(2)}`;
-                 pnlEl.style.color = totalPnL >= 0 ? '#00ff9d' : '#ff3b30';
-                 pnlEl.style.textShadow = totalPnL >= 0 ? '0 0 10px rgba(0,255,157,0.3)' : '0 0 10px rgba(255,59,48,0.3)';
+                 const sign = weeklyPnL >= 0 ? '+' : '';
+                 pnlEl.innerText = `${sign}${weeklyPnL.toFixed(2)}`;
+                 pnlEl.style.color = weeklyPnL >= 0 ? '#00ff9d' : '#ff3b30';
+                 pnlEl.style.textShadow = weeklyPnL >= 0 ? '0 0 10px rgba(0,255,157,0.3)' : '0 0 10px rgba(255,59,48,0.3)';
             }
             if (winrateEl) {
                 winrateEl.innerText = `${winrate.toFixed(1)}%`;
@@ -136,6 +148,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 winrateBarEl.style.boxShadow = winrate >= 50 ? '0 0 8px #00ff9d' : '0 0 8px #ff3b30';
             }
             if (totalTradesEl) totalTradesEl.innerText = totalTrades;
+
+            if (tradingCard) {
+                tradingCard.style.cursor = 'pointer';
+                tradingCard.onclick = () => alert(`Статистика Трейдинга\n\nPnL за неделю: ${weeklyPnL.toFixed(2)}$\nОбщий PnL (год): ${totalPnL.toFixed(2)}$\nWinrate: ${winrate.toFixed(1)}%`);
+            }
         }
     } catch (err) {
         console.error('Error updating trading stats:', err);
