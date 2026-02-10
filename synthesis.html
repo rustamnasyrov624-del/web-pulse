@@ -7,7 +7,8 @@
     <link rel="stylesheet" href="style.css?v=11.0">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body>
+<body class="proactive-agent">
+    <canvas id="bg-canvas"></canvas>
     <div class="noise-overlay"></div>
     <div class="bg-gradient"></div>
 
@@ -75,5 +76,6 @@
 
         document.addEventListener('DOMContentLoaded', loadSynthesis);
     </script>
+    <script src="background.js"></script>
 </body>
 </html>
