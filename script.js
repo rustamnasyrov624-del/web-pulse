@@ -126,6 +126,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Error updating trading stats:', err);
     }
 
+    // 5. DEEP WORK STATS
+    try {
+        const { data: sessions } = await supabase
+            .from('focus_sessions')
+            .select('duration')
+            .eq('phase', 'flow');
+            
+        const totalMinutes = sessions ? sessions.reduce((sum, s) => sum + (s.duration || 0), 0) : 0;
+        const totalHours = (totalMinutes / 60).toFixed(1);
+        const goal = 25; // Weekly goal? Or Q1 goal? Let's keep it as is.
+        const progress = Math.min((totalHours / goal) * 100, 100);
+
+        const dwValEl = document.getElementById('deep-work-val');
+        const dwBarEl = document.getElementById('deep-work-bar');
+        
+        if (dwValEl) dwValEl.innerText = totalHours;
+        if (dwBarEl) {
+            dwBarEl.style.width = `${progress}%`;
+            dwBarEl.style.boxShadow = `0 0 ${progress * 0.1}px #00ff9d`;
+        }
+    } catch (err) {
+        console.error('Error updating deep work:', err);
+    }
+
     // 4. CHALLENGES
     const challengesContainer = document.getElementById('challenges-container');
     if (challengesContainer) {
