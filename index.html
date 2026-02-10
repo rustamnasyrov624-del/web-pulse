@@ -44,7 +44,7 @@
 
         <section class="dashboard-grid">
             
-            <!-- TRADING CARD (Total PnL) -->
+            <!-- TRADING CARD -->
             <article class="glass-card trading-card" id="card-trading">
                 <div class="card-header">
                     <span class="card-title">Trading Performance</span>
@@ -63,7 +63,7 @@
                 </div>
             </article>
 
-            <!-- DEEP WORK CARD (Weekly) -->
+            <!-- DEEP WORK CARD -->
             <article class="glass-card deep-work-card" id="card-deepwork">
                 <div class="card-header">
                     <span class="card-title">Deep Work Focus</span>
@@ -72,17 +72,36 @@
                     </div>
                 </div>
                 <div class="big-number"><span id="deepwork-weekly">0.0</span><span class="unit">h</span></div>
-                <div class="label">WEEKLY FOCUS TIME</div>
+                <div class="label">TOTAL FOCUS TIME</div>
                 <div class="progress-container">
                     <div id="deepwork-progress-bar" class="progress-bar" style="width: 0%"></div>
                 </div>
                 <div class="card-footer">
-                    <span>GOAL: 25h</span>
-                    <span>AVG: <span id="deepwork-avg">0</span>h/d</span>
+                    <span>GOAL: 300h</span>
+                    <span>Q1 AVG: <span id="deepwork-avg">0</span>h/d</span>
                 </div>
             </article>
 
-            <!-- DEBT CARD (Weekly vs Goal) -->
+            <!-- BLOG CARD -->
+            <article class="glass-card blog-card" id="card-blog">
+                <div class="card-header">
+                    <span class="card-title">Blog 1.618</span>
+                    <div class="card-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                    </div>
+                </div>
+                <div class="big-number"><span id="blog-subscribers">0</span><span class="unit">sub</span></div>
+                <div class="label">SUBSCRIBERS / 1000 GOAL</div>
+                <div class="progress-container">
+                    <div id="blog-progress-bar" class="progress-bar" style="width: 0%"></div>
+                </div>
+                <div class="card-footer">
+                    <span>Q1 TARGET: 200</span>
+                    <span>HITS: <span id="blog-hits">0</span></span>
+                </div>
+            </article>
+
+            <!-- DEBT CARD -->
             <article class="glass-card debt-card" id="card-debt">
                 <div class="card-header">
                     <span class="card-title">Debt Repayment</span>
@@ -91,13 +110,32 @@
                     </div>
                 </div>
                 <div class="big-number"><span id="debt-weekly">0.00</span><span class="unit">k</span></div>
-                <div class="label">WEEKLY PAID / 23k GOAL</div>
+                <div class="label">Q1 PAID / 300k GOAL</div>
                 <div class="progress-container">
                     <div id="debt-progress-bar" class="progress-bar" style="width: 0%"></div>
                 </div>
                 <div class="card-footer">
-                    <span>GLOBAL: 8.98M</span>
-                    <span>Q1: <span id="debt-q1-total">0</span>k</span>
+                    <span>TOTAL: 9M</span>
+                    <span>PAID: <span id="debt-q1-total">0</span>k</span>
+                </div>
+            </article>
+
+            <!-- AI FREELANCE CARD -->
+            <article class="glass-card freelance-card" id="card-freelance">
+                <div class="card-header">
+                    <span class="card-title">AI Freelance</span>
+                    <div class="card-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    </div>
+                </div>
+                <div class="big-number"><span id="freelance-revenue">0.0</span><span class="unit">k</span></div>
+                <div class="label">REVENUE / 20k MONTHLY</div>
+                <div class="progress-container">
+                    <div id="freelance-progress-bar" class="progress-bar" style="width: 0%"></div>
+                </div>
+                <div class="card-footer">
+                    <span>ORDERS: <span id="freelance-count">0</span></span>
+                    <span>NEXT: 5k project</span>
                 </div>
             </article>
 

@@ -152,7 +152,7 @@ header {
 /* DASHBOARD GRID */
 .dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
     gap: 24px;
     margin-bottom: 80px;
 }
@@ -168,6 +168,10 @@ header {
     overflow: hidden;
     transition: var(--transition);
     cursor: pointer;
+    min-height: 240px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .glass-card::before {
@@ -191,7 +195,6 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 25px;
 }
 
 .card-icon {
@@ -215,8 +218,8 @@ header {
     font-family: var(--font-heading);
     font-size: 3rem;
     font-weight: 700;
-    margin-bottom: 10px;
     line-height: 1;
+    margin-top: 10px;
 }
 
 .unit {
@@ -230,7 +233,7 @@ header {
     height: 4px;
     background: rgba(255,255,255,0.05);
     border-radius: 2px;
-    margin: 20px 0;
+    margin: 15px 0;
     overflow: hidden;
 }
 
@@ -252,7 +255,11 @@ header {
 /* SPECIFIC CARD STYLES */
 .trading-card .big-number { color: var(--neon-green); }
 .deep-work-card .big-number { color: #fff; }
+.blog-card .big-number { color: #00d2ff; }
+.blog-card .card-icon { color: #00d2ff; }
 .debt-card .big-number { color: var(--neon-red); }
+.freelance-card .big-number { color: #ffca28; }
+.freelance-card .card-icon { color: #ffca28; }
 
 /* MODALS */
 .modal-overlay {
