@@ -540,14 +540,28 @@ header {
 .stat-val.positive { color: var(--accent-green); }
 .stat-val.negative { color: var(--accent-red); }
 
-/* Glow effect for modal */
-.modal-glow {
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(0, 255, 157, 0.05) 0%, transparent 60%);
-    pointer-events: none;
-    z-index: 0;
+/* SYNTHESIS GRID */
+.synthesis-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 30px;
+    margin-top: 50px;
+}
+
+.synthesis-item h3 {
+    margin: 10px 0 20px 0;
+    font-size: 1.5rem;
+    color: var(--neon-green);
+}
+
+.synthesis-item p {
+    line-height: 1.8;
+    color: #ccc;
+    font-size: 1.1rem;
+    white-space: pre-wrap;
+}
+
+.loading-state {
+    text-align: center;
+    padding: 100px;
 }
