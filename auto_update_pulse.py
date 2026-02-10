@@ -22,22 +22,45 @@ class PulseUpdater:
 
     def scan_full_debt(self):
         """
-        Scans for debt values.
-        Currently pulls from data.json, but designed to be extended 
-        to scan markdown notes or comment tags in the future.
+        Scans for debt values from Supabase and calculates progress.
         """
-        # Placeholder for complex scanning logic (Values + Notes + Comments)
-        # For now, trust data.json as the source of truth
-        debt_data = self.data.get('debt', {})
-        current = debt_data.get('current', 0)
-        total = debt_data.get('total', 300)
+        print("🔍 Fetching debt data from Supabase...")
+        SUPABASE_URL = "https://htskiitfjiaeupexvalo.supabase.co"
+        SUPABASE_KEY = "sb_publishable_95k9XN77rpfdoogJThv2eg_WpN29aCd"
         
+        try:
+            import requests
+            headers = {
+                "apikey": SUPABASE_KEY,
+                "Authorization": f"Bearer {SUPABASE_KEY}"
+            }
+            resp = requests.get(f"{SUPABASE_URL}/rest/v1/debts?select=amount", headers=headers)
+            if resp.status_code == 200:
+                amounts = [float(row['amount']) for row in resp.json()]
+                total_repaid = sum(amounts) / 1000.0 # Convert to 'k'
+                print(f"✅ Supabase Debt Sum: {total_repaid:.2f}k")
+            else:
+                print(f"⚠️ Supabase error: {resp.status_code}. Falling back to data.json")
+                total_repaid = self.data.get('debt', {}).get('current', 0)
+        except Exception as e:
+            print(f"❌ Error fetching from Supabase: {e}. Falling back to data.json")
+            total_repaid = self.data.get('debt', {}).get('current', 0)
+
+        debt_data = self.data.get('debt', {})
+        total_goal = debt_data.get('total', 300)
+        
+        # Update data.json state for next time
+        if 'debt' not in self.data: self.data['debt'] = {}
+        self.data['debt']['current'] = round(total_repaid, 2)
+        with open(DATA_FILE, 'w', encoding='utf-8') as f:
+            json.dump(self.data, f, indent=2)
+
         # Calculate progress
-        progress = (current / total) * 100 if total > 0 else 0
+        progress = (total_repaid / total_goal) * 100 if total_goal > 0 else 0
         
         return {
-            'current': current,
-            'total': total,
+            'current': round(total_repaid, 2),
+            'total': total_goal,
             'progress': round(progress, 1),
             'global': debt_data.get('global', '8.98M')
         }

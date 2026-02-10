@@ -1,215 +1,159 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PULSE 1.618 | Reality Show</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600&family=Space+Grotesk:wght@300;500;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=9.0">
+    <link rel="stylesheet" href="style.css?v=10.0">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        /* Inline critical CSS to prevent flash */
-        body {
-            background-color: #050505;
-            margin: 0;
-            opacity: 0;
-            animation: fadeIn 0.5s forwards;
-        }
-
-        @keyframes fadeIn {
-            to {
-                opacity: 1;
-            }
-        }
-    </style>
 </head>
-
 <body>
 
     <div class="noise-overlay"></div>
     <div class="bg-gradient"></div>
 
     <main class="container">
-
-        <!-- HEADER -->
-        <header class="hero-section">
-            <div class="hero-content">
-                <div class="brand">
-                    <!-- Custom Logo -->
-                    <img src="assets/logo.png" alt="1.618" class="logo-icon-img">
-                    <span class="logo-text">1.618</span>
-                    <span class="status-dot"></span> <span class="status-text">LIVE</span>
-                </div>
-                <h1 class="main-title">
-                    <div class="pulse-line-container">
-                        <svg class="pulse-svg" viewBox="0 0 300 100" preserveAspectRatio="none">
-                            <path
-                                d="M0,50 L50,50 L60,30 L70,70 L80,50 L120,50 L130,20 L140,80 L150,50 L200,50 L210,10 L220,90 L230,50 L300,50" />
-                        </svg>
-                    </div>
-                    <span>PULSE 1.618</span>
-                </h1>
-                <p class="subtitle">От -9,000,000₽ до финансовой свободы.<br>Реалити-шоу без цензуры.</p>
-                <div class="hero-stats">
-                    <div class="stat-item">
-                        <span class="label">DATE</span>
-                        <span class="value" id="current-date">08.02.2026</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="label">DAY</span>
-                        <span class="value">33/365</span>
-                    </div>
+        
+        <header>
+            <div class="brand">
+                <img src="assets/logo.png" alt="1.618" class="logo-icon-img">
+                <span class="logo-text">1.618</span>
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span class="status-text">SYSTEM ONLINE</span>
                 </div>
             </div>
-            <div class="hero-visual">
-                <div class="glass-card main-card">
-                    <div class="card-glow"></div>
-                    <h3>PROP TRADING</h3>
-                    <div id="challenges-container">
-                        <!-- Dynamic Content Here -->
+            
+            <div class="hero-section">
+                <div class="hero-left">
+                    <h1 class="main-title">PULSE<br>1.618</h1>
+                    <p class="subtitle">От -9,000,000₽ до финансовой свободы. Реалити-шоу без цензуры в прямом эфире.</p>
+                </div>
+                <div class="hero-right">
+                    <div class="mini-stat">
+                        <span class="label">DAY</span>
+                        <div class="value" id="day-counter">--/365</div>
+                    </div>
+                    <div class="mini-stat">
+                        <span class="label">DATE</span>
+                        <div class="value" id="current-date">--.--.2026</div>
                     </div>
                 </div>
             </div>
         </header>
 
-        <!-- DASHBOARD GRID (Restored & Polished) -->
         <section class="dashboard-grid">
-
-            <!-- DEEP WORK (Overachieved) -->
-            <article class="glass-card stat-card">
-                <div class="card-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00ff9d" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <polyline points="12 6 12 12 16 14"></polyline>
-                    </svg>
+            
+            <!-- TRADING CARD (Total PnL) -->
+            <article class="glass-card trading-card" id="card-trading">
+                <div class="card-header">
+                    <span class="card-title">Trading Performance</span>
+                    <div class="card-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
+                    </div>
                 </div>
-                <h3>Глубокая Работа (неделя)</h3>
-                <div class="big-number" style="color: #00ff9d; text-shadow: 0 0 10px rgba(0,255,157,0.3);"><span id="deep-work-val">26.1</span><span
-                        class="unit">ч</span></div>
-                <div class="progress-sm">
-                    <!-- 26.1 > 25 Goal = 100% + Glow -->
-                    <div id="deep-work-bar" class="bar" style="width: 0.0%" box-shadow: 0 0 8px #00ff9d;"></div>
+                <div class="big-number"><span id="trading-total-pnl">0.00</span><span class="unit">$</span></div>
+                <div class="label">TOTAL EQUITY PNL</div>
+                <div class="progress-container">
+                    <div id="trading-winrate-bar" class="progress-bar" style="width: 0%"></div>
                 </div>
-                <div class="sub-text">План: <span id="deep-work-goal">25</span>ч+</div>
-                <div class="week-stat" style="font-family: 'Inter', sans-serif;">Avg: 3.1ч/день <span
-                        class="status-dot-sm"></span></div>
+                <div class="card-footer">
+                    <span>WINRATE: <span id="trading-winrate">0%</span></span>
+                    <span>TRADES: <span id="trading-count">0</span></span>
+                </div>
             </article>
 
-            <!-- BLOG / SUBS -->
-            <article class="glass-card stat-card">
-                <div class="card-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00ff9d" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="9" cy="7" r="4"></circle>
-                    </svg>
+            <!-- DEEP WORK CARD (Weekly) -->
+            <article class="glass-card deep-work-card" id="card-deepwork">
+                <div class="card-header">
+                    <span class="card-title">Deep Work Focus</span>
+                    <div class="card-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    </div>
                 </div>
-                <h3>Подписчики</h3>
-                <div class="big-number" id="subs-val">75</div>
-                <div class="progress-sm">
-                    <div id="subs-bar" class="bar" style="width: 37.5%"></div>
+                <div class="big-number"><span id="deepwork-weekly">0.0</span><span class="unit">h</span></div>
+                <div class="label">WEEKLY FOCUS TIME</div>
+                <div class="progress-container">
+                    <div id="deepwork-progress-bar" class="progress-bar" style="width: 0%"></div>
                 </div>
-                <div class="sub-text">Цель Q1: <span id="subs-goal">200</span></div>
-                <div class="delta-stat" id="subs-change" style="color: #ff3b30">-1 за неделю</div>
+                <div class="card-footer">
+                    <span>GOAL: 25h</span>
+                    <span>AVG: <span id="deepwork-avg">0</span>h/d</span>
+                </div>
             </article>
 
-            <!-- DEBT / FINANCE (Q1 FOCUS) -->
-            <article class="glass-card stat-card">
-                <div class="card-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00ff9d" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                        <line x1="1" y1="10" x2="23" y2="10"></line>
-                    </svg>
+            <!-- DEBT CARD (Weekly vs Goal) -->
+            <article class="glass-card debt-card" id="card-debt">
+                <div class="card-header">
+                    <span class="card-title">Debt Repayment</span>
+                    <div class="card-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                    </div>
                 </div>
-                <h3>Долги Q1 (неделя)</h3>
-                <div class="big-number" style="color: #00ff9d"><span id="total-debt">28.65</span><span class="unit">k</span> <span
-                        style="font-size:0.4em; color:#666;">/ 300k</span></div>
-                <div class="progress-sm">
-                    <!-- 28.65k / 300k = 9.5% -->
-                    <div id="debt-progress" class="bar" style="width: 9.5%"></div>
+                <div class="big-number"><span id="debt-weekly">0.00</span><span class="unit">k</span></div>
+                <div class="label">WEEKLY PAID / 23k GOAL</div>
+                <div class="progress-container">
+                    <div id="debt-progress-bar" class="progress-bar" style="width: 0%"></div>
                 </div>
-                <div class="sub-text" style="display: flex; justify-content: space-between;">
-                    <span>Прогресс Q1</span>
-                    <span>9.5%</span>
+                <div class="card-footer">
+                    <span>GLOBAL: 8.98M</span>
+                    <span>Q1: <span id="debt-q1-total">0</span>k</span>
                 </div>
-                <div class="total-debt" style="margin-top:10px; font-size:0.9em; color:#ddd; font-weight: 500;">
-                    Глобальный остаток: 8.98M</div>
-            </article>
-
-            <!-- TRADING PERFORMANCE -->
-            <article class="glass-card stat-card">
-                <div class="card-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00ff9d" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
-                        <polyline points="16 7 22 7 22 13"></polyline>
-                    </svg>
-                </div>
-                <h3>Trading (неделя)</h3>
-                <div class="big-number"><span id="trading-pnl">0.00</span><span class="unit">$</span></div>
-                <div class="progress-sm">
-                    <div id="winrate-bar" class="bar" style="width: 0%"></div>
-                </div>
-                <div class="sub-text" style="display: flex; justify-content: space-between;">
-                    <span>Winrate</span>
-                    <span id="trading-winrate">0%</span>
-                </div>
-                <div class="week-stat">Trades: <span id="total-trades">0</span></div>
-                <a href="journal.html" style="display:block; margin-top:10px; font-size:0.8em; color:#00ff9d; text-decoration:none;">View Journal →</a>
             </article>
 
         </section>
-
-
 
         <!-- NAVIGATION LINKS -->
-        <section class="content-section">
-            <h2 class="section-title">База Знаний</h2>
+        <section class="links-section">
+            <h2 class="section-title">Database & Journal</h2>
             <div class="links-list">
-                <a href="https://t.me/nsrv_1618/200" target="_blank" class="link-card">
-                    <span class="link-tag">Start</span>
-                    <span class="link-title">Итоги 2025: Честный разбор</span>
-                    <span class="link-arrow">→</span>
+                <a href="journal.html" class="glass-card link-item">
+                    <span class="label">MODULE_01</span>
+                    <h3>Trading Journal</h3>
+                    <p>Подробная аналитика всех сделок и аккаунтов.</p>
                 </a>
-                <a href="https://t.me/nsrv_1618/203" target="_blank" class="link-card">
-                    <span class="link-tag">Mindset</span>
-                    <span class="link-title">EDGE: Дисциплина важнее таланта</span>
-                    <span class="link-arrow">→</span>
-                </a>
-                <a href="https://t.me/nsrv_1618/218" target="_blank" class="link-card highlight">
-                    <span class="link-tag fire">New</span>
-                    <span class="link-title">Когда все ноют про ИИ (23.01)</span>
-                    <span class="link-arrow">→</span>
-                </a>
-                <a href="https://t.me/nsrv_1618/204" target="_blank" class="link-card">
-                    <span class="link-tag">Trading</span>
-                    <span class="link-title">Шкура на кону: Серия постов</span>
-                    <span class="link-arrow">→</span>
+                <a href="https://t.me/nsrv_1618" target="_blank" class="glass-card link-item">
+                    <span class="label">COMM_01</span>
+                    <h3>Telegram Channel</h3>
+                    <p>Свежие обновления и рефлексия в реальном времени.</p>
                 </a>
             </div>
-
         </section>
-
-        <footer>
-            <div class="footer-content">
-                <p>© 2026 NSRV 1.618. All systems operational.</p>
-                <div class="socials">
-                    <a href="https://t.me/nsrv_1618">Telegram Channel</a>
-                    <a href="#">Contact</a>
-                </div>
-            </div>
-        </footer>
 
     </main>
 
-    <script type="module" src="script.js?v=2.1"></script>
-</body>
+    <!-- MODALS -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal" id="close-modal">&times;</button>
+            <div id="modal-body">
+                <!-- Dynamic Content -->
+            </div>
+        </div>
+    </div>
 
+    <!-- MODAL CONTAINER -->
+    <div id="stats-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close-btn">&times;</button>
+            <div class="modal-glow"></div>
+            
+            <div class="modal-header">
+                <h2 id="modal-title">Statistics</h2>
+            </div>
+            
+            <div class="modal-tabs">
+                <button class="tab-btn active" id="tab-week" data-tab="week">Week</button>
+                <button class="tab-btn" id="tab-month" data-tab="month">Month</button>
+                <button class="tab-btn" id="tab-year" data-tab="year">Year</button>
+            </div>
+            
+            <div id="modal-body" class="modal-body">
+                <!-- Dynamic Content -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="script.js?v=3.1"></script>
+</body>
 </html>
