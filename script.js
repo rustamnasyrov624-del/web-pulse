@@ -52,33 +52,48 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         const { data: debts } = await supabase
             .from('debts')
-            .select('amount')
+            .select('amount, date')
             .gte('date', '2026-01-01');
             
-        const totalRepaid = debts ? debts.reduce((sum, row) => sum + row.amount, 0) : 0;
-        const progress = Math.min((totalRepaid / DEBT_GOAL) * 100, 100);
-        
-        // Select Elements
-        const debtValueEl = document.getElementById('total-debt');
-        const debtBar = document.getElementById('debt-progress');
-        // Finds the "9.5%" text span in the sub-text container
-        const debtSubText = document.querySelector('.glass-card:nth-child(3) .sub-text span:last-child'); 
-        
-        // FIX: Only update the number text, preserving the siblings (k / 300k)
-        if (debtValueEl) {
-             debtValueEl.innerText = (totalRepaid / 1000).toFixed(2);
-        }
-        
-        if (debtBar) {
-            debtBar.style.width = `${progress}%`;
-            // Add glow if progress > 0
-            if (progress > 0) {
-                debtBar.style.boxShadow = `0 0 ${progress * 0.2}px #00ff9d`;
-            }
-        }
+        if (debts) {
+            const now = new Date();
+            const day = now.getDay();
+            const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+            const startOfWeek = new Date(now.setDate(diff));
+            startOfWeek.setHours(0,0,0,0);
 
-        if (debtSubText) {
-             debtSubText.innerText = `${progress.toFixed(1)}%`;
+            const weeklyRepaid = debts
+                .filter(d => new Date(d.date) >= startOfWeek)
+                .reduce((sum, row) => sum + row.amount, 0);
+            
+            const totalRepaid = debts.reduce((sum, row) => sum + row.amount, 0);
+            const progress = Math.min((totalRepaid / DEBT_GOAL) * 100, 100);
+            
+            // Select Elements
+            const debtValueEl = document.getElementById('total-debt');
+            const debtBar = document.getElementById('debt-progress');
+            const debtCard = debtValueEl.closest('.stat-card');
+            const debtSubText = document.querySelector('.glass-card:nth-child(3) .sub-text span:last-child'); 
+            
+            if (debtValueEl) {
+                 debtValueEl.innerText = (weeklyRepaid / 1000).toFixed(2);
+            }
+            
+            if (debtBar) {
+                debtBar.style.width = `${progress}%`;
+                if (progress > 0) {
+                    debtBar.style.boxShadow = `0 0 ${progress * 0.2}px #00ff9d`;
+                }
+            }
+
+            if (debtSubText) {
+                 debtSubText.innerText = `${progress.toFixed(1)}%`;
+            }
+
+            if (debtCard) {
+                debtCard.style.cursor = 'pointer';
+                debtCard.onclick = () => alert(`Статистика выплат\n\nЗа неделю: ${(weeklyRepaid/1000).toFixed(2)}k\nВсего за Q1: ${(totalRepaid/1000).toFixed(2)}k`);
+            }
         }
     } catch (err) {
         console.error('Error updating debt:', err);
@@ -130,21 +145,45 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         const { data: sessions } = await supabase
             .from('focus_sessions')
-            .select('duration')
+            .select('duration, start_time')
             .eq('phase', 'flow');
             
-        const totalMinutes = sessions ? sessions.reduce((sum, s) => sum + (s.duration || 0), 0) : 0;
-        const totalHours = (totalMinutes / 60).toFixed(1);
-        const goal = 25; // Weekly goal? Or Q1 goal? Let's keep it as is.
-        const progress = Math.min((totalHours / goal) * 100, 100);
+        if (sessions) {
+            // Filter for current week (starting Monday)
+            const now = new Date();
+            const day = now.getDay();
+            const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+            const startOfWeek = new Date(now.setDate(diff));
+            startOfWeek.setHours(0,0,0,0);
 
-        const dwValEl = document.getElementById('deep-work-val');
-        const dwBarEl = document.getElementById('deep-work-bar');
-        
-        if (dwValEl) dwValEl.innerText = totalHours;
-        if (dwBarEl) {
-            dwBarEl.style.width = `${progress}%`;
-            dwBarEl.style.boxShadow = `0 0 ${progress * 0.1}px #00ff9d`;
+            const weeklyMinutes = sessions
+                .filter(s => new Date(s.start_time) >= startOfWeek)
+                .reduce((sum, s) => sum + (s.duration || 0), 0);
+            
+            const totalMinutes = sessions.reduce((sum, s) => sum + (s.duration || 0), 0);
+            
+            const weeklyHours = (weeklyMinutes / 60).toFixed(1);
+            const totalHours = (totalMinutes / 60).toFixed(1);
+            
+            const goal = 25; // Weekly goal
+            const progress = Math.min((weeklyHours / goal) * 100, 100);
+
+            const dwValEl = document.getElementById('deep-work-val');
+            const dwBarEl = document.getElementById('deep-work-bar');
+            const dwCard = dwValEl.closest('.stat-card');
+            
+            if (dwValEl) dwValEl.innerText = weeklyHours;
+            if (dwBarEl) {
+                dwBarEl.style.width = `${progress}%`;
+                dwBarEl.style.boxShadow = `0 0 ${progress * 0.1}px #00ff9d`;
+            }
+
+            // Click for detail (yearly)
+            if (dwCard) {
+                dwCard.style.cursor = 'pointer';
+                dwCard.title = `Итого за год: ${totalHours}ч`;
+                dwCard.onclick = () => alert(`Статистика Глубокой Работы\n\nЗа неделю: ${weeklyHours}ч\nВсего за год: ${totalHours}ч`);
+            }
         }
     } catch (err) {
         console.error('Error updating deep work:', err);
