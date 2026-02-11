@@ -40,9 +40,16 @@ async function initJournal() {
     
     // Normalize Account Names
     allTrades.forEach(t => {
-        if (t.account_id === 'SpiceProp #001') {
-            t.account_id = 'SpiceProp #001 (Failed)';
-        }
+        if (!t.account_id) return;
+
+        // Auto-fix labels
+        if (t.account_id === 'SpiceProp #001') t.account_id = 'SpiceProp #001 (Failed)';
+        if (t.account_id === 'SpiceProp #002') t.account_id = 'SpiceProp #002 (Failed)';
+        if (t.account_id === 'FundingPips #003') t.account_id = 'Funding Pips (Failed)';
+        
+        // Active challenge normalization
+        if (t.account_id === 'Funding Pips') t.account_id = 'Funding Pips P1';
+        if (t.account_id === 'SpiceProp') t.account_id = 'SpiceProp P1';
     });
     
     updateView('all');
@@ -122,12 +129,17 @@ function populateTable(trades) {
     tradesTableBody.innerHTML = '';
     trades.forEach(t => {
         const row = document.createElement('tr');
-        const color = t.pnl >= 0 ? 'var(--neon-green)' : 'var(--neon-red)';
+        const color = (t.pnl || 0) >= 0 ? 'var(--neon-green)' : 'var(--neon-red)';
+        const accName = t.account_id || 'Unknown';
+        
         row.innerHTML = `
-            <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">${new Date(t.date || t.created_at).toLocaleDateString()}</td>
+            <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <div style="font-size: 0.85rem;">${new Date(t.date || t.created_at).toLocaleDateString()}</div>
+                <div style="font-size: 0.65rem; opacity: 0.5; color: ${accName.includes('Failed') ? 'var(--neon-red)' : '#fff'}">${accName}</div>
+            </td>
             <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #fff; font-family: var(--font-mono);">${t.symbol || 'N/A'}</td>
             <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.7rem; color: ${(t.direction?.toUpperCase() === 'LONG' || t.direction?.toUpperCase() === 'BUY' || t.type?.toUpperCase() === 'BUY') ? 'var(--neon-green)' : 'var(--neon-red)'};">${(t.direction || t.type || '-').toUpperCase()}</td>
-            <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); color: ${color}; font-weight: bold;">${t.pnl >= 0 ? '+' : ''}${t.pnl?.toFixed(2) || '0.00'}</td>
+            <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); color: ${color}; font-weight: bold;">${(t.pnl || 0) >= 0 ? '+' : ''}${t.pnl?.toFixed(2) || '0.00'}</td>
         `;
         tradesTableBody.appendChild(row);
     });
