@@ -5,7 +5,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 const SUPABASE_URL = 'https://htskiitfjiaeupexvalo.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_95k9XN77rpfdoogJThv2eg_WpN29aCd'; 
 
-// Reset Correction: Manual adjustment for failed challenges (fees/losses not in trades)
+// Reset Correction
 const RESET_CORRECTION = 0; 
 
 // Initialize Supabase
@@ -38,22 +38,10 @@ async function fetchTrades() {
 async function initJournal() {
     allTrades = await fetchTrades();
     
-    // Normalize Account Names (Hard Mapping Fallback)
+    // Normalize Account Names (Legacy fix if any nulls left)
     allTrades.forEach(t => {
-        const acc = t.account_id || '';
-        
-        // 1. Map known active challenges
-        if (acc === 'Funding Pips' || acc === 'FundingPips #003' || acc === 'Funding Pips P1') {
-            t.account_id = 'Funding Pips P1';
-        } else if (acc === 'SpiceProp' || acc === 'SpiceProp #002' || acc === 'SpiceProp P1') {
-            t.account_id = 'SpiceProp P1';
-        } else if (acc === 'SpiceProp #001 (Failed)' || acc === 'SpiceProp #001') {
-            t.account_id = 'SpiceProp #001 (Failed)';
-        }
-        
-        // 2. Default for nulls
         if (!t.account_id) {
-            t.account_id = 'History (Legacy)';
+            t.account_id = 'Legacy / History';
         }
     });
     
@@ -64,16 +52,15 @@ async function initJournal() {
 function setupFilters() {
     const accounts = [...new Set(allTrades.map(t => t.account_id).filter(Boolean))];
     
-    // Categorization: Active (contains P1/P2) vs History
-    const active = accounts.filter(acc => acc.includes('P1') || acc.includes('P2'));
-    const archive = accounts.filter(acc => !acc.includes('P1') && !acc.includes('P2'));
+    const activeAccs = accounts.filter(acc => acc.includes('P1') || acc.includes('P2'));
+    const archiveAccs = accounts.filter(acc => !acc.includes('P1') && !acc.includes('P2'));
 
     filterContainer.innerHTML = '';
     
-    // All Accounts button
+    // Total button
     const allBtn = document.createElement('button');
     allBtn.className = 'filter-btn active';
-    allBtn.innerText = 'Total Performance';
+    allBtn.innerText = 'All Challenges';
     allBtn.onclick = () => {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         allBtn.classList.add('active');
@@ -81,16 +68,17 @@ function setupFilters() {
     };
     filterContainer.appendChild(allBtn);
 
-    // Active Challenges Section
-    if (active.length > 0) {
+    // Section Labels
+    const createSection = (titleText, accList, isArchive = false) => {
+        if (accList.length === 0) return;
         const title = document.createElement('div');
         title.className = 'section-label';
-        title.innerText = 'Active Challenges (P1 / P2)';
+        title.innerText = titleText;
         filterContainer.appendChild(title);
         
-        active.sort().forEach(acc => {
+        accList.sort().forEach(acc => {
             const btn = document.createElement('button');
-            btn.className = 'filter-btn challenge-btn';
+            btn.className = `filter-btn ${isArchive ? 'archive-btn' : 'challenge-btn'}`;
             btn.innerText = acc;
             btn.onclick = () => {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -99,27 +87,10 @@ function setupFilters() {
             };
             filterContainer.appendChild(btn);
         });
-    }
+    };
 
-    // Archive Section
-    if (archive.length > 0) {
-        const title = document.createElement('div');
-        title.className = 'section-label';
-        title.innerText = 'Archives & History';
-        filterContainer.appendChild(title);
-        
-        archive.sort().forEach(acc => {
-            const btn = document.createElement('button');
-            btn.className = 'filter-btn archive-btn';
-            btn.innerText = acc;
-            btn.onclick = () => {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                updateView(acc);
-            };
-            filterContainer.appendChild(btn);
-        });
-    }
+    createSection('Active Challenges', activeAccs);
+    createSection('Archives & History', archiveAccs, true);
 }
 
 function updateView(accountFilter) {
@@ -128,25 +99,23 @@ function updateView(accountFilter) {
         filteredTrades = allTrades.filter(t => t.account_id === accountFilter);
     }
 
-    // Calculate cumulative and identify resets
+    // Separate Active (pnl is null) and Realized
+    const activePositions = filteredTrades.filter(t => t.pnl === null);
+    const realizedTrades = filteredTrades.filter(t => t.pnl !== null);
+
+    // Calculate cumulative only for realized
     let cumulative = 0;
     const chartData = [];
     const resets = [];
 
-    filteredTrades.forEach((t, index) => {
+    realizedTrades.forEach((t, index) => {
         cumulative += (t.pnl || 0);
         chartData.push({
             x: new Date(t.date || t.created_at).toLocaleDateString(),
             y: cumulative
         });
 
-        // "RESET" Logic: If account name contains "Failed" or symbol is "**RESET**"
-        if (t.account_id && t.account_id.includes('Failed')) {
-            const nextTrade = filteredTrades[index + 1];
-            if (!nextTrade || nextTrade.account_id !== t.account_id) {
-                resets.push(chartData.length - 1);
-            }
-        } else if (t.symbol === '**RESET**') {
+        if (t.symbol === '**RESET**') {
             resets.push(chartData.length - 1);
         }
     });
@@ -160,35 +129,70 @@ function updateView(accountFilter) {
     totalPnlDisplay.innerText = `$${cumulative.toFixed(2)}`;
     totalPnlDisplay.style.color = cumulative >= 0 ? 'var(--neon-green)' : 'var(--neon-red)';
 
-    // Update Table
-    populateTable(filteredTrades.slice().reverse().slice(0, 50));
+    // Update Table with Sections
+    renderTable(activePositions, realizedTrades);
 
     // Render Chart
     renderChart(chartData, resets);
 }
 
-function populateTable(trades) {
+function renderTable(active, realized) {
     tradesTableBody.innerHTML = '';
-    trades.forEach(t => {
-        const row = document.createElement('tr');
-        const color = (t.pnl || 0) >= 0 ? 'var(--neon-green)' : 'var(--neon-red)';
-        const accName = t.account_id || 'Unknown';
-        
-        row.innerHTML = `
-            <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                <div style="font-size: 0.85rem;">${new Date(t.date || t.created_at).toLocaleDateString()}</div>
-                <div style="font-size: 0.65rem; opacity: 0.5; color: ${accName.includes('Failed') ? 'var(--neon-red)' : '#fff'}">${accName}</div>
+
+    // 1. Render Active Positions Header
+    if (active.length > 0) {
+        const headerRow = document.createElement('tr');
+        headerRow.innerHTML = `
+            <td colspan="4" style="padding: 20px 12px 10px 12px; font-family: var(--font-heading); font-size: 0.7rem; color: var(--neon-green); opacity: 0.8; letter-spacing: 2px;">
+                ◉ CURRENT OPEN POSITIONS (${active.length})
             </td>
-            <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #fff; font-family: var(--font-mono);">${t.symbol || 'N/A'}</td>
-            <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.7rem; color: ${(t.direction?.toUpperCase() === 'LONG' || t.direction?.toUpperCase() === 'BUY' || t.type?.toUpperCase() === 'BUY') ? 'var(--neon-green)' : 'var(--neon-red)'};">${(t.direction || t.type || '-').toUpperCase()}</td>
-            <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); color: ${color}; font-weight: bold;">${(t.pnl || 0) >= 0 ? '+' : ''}${t.pnl?.toFixed(2) || '0.00'}</td>
         `;
-        tradesTableBody.appendChild(row);
+        tradesTableBody.appendChild(headerRow);
+
+        active.slice().reverse().forEach(t => {
+            tradesTableBody.appendChild(createTradeRow(t, true));
+        });
+    }
+
+    // 2. Render Realized Trades Header
+    const headerRowRel = document.createElement('tr');
+    headerRowRel.innerHTML = `
+        <td colspan="4" style="padding: 30px 12px 10px 12px; font-family: var(--font-heading); font-size: 0.7rem; color: var(--text-secondary); opacity: 0.5; letter-spacing: 2px;">
+            HISTORY / REALIZED TRADES
+        </td>
+    `;
+    tradesTableBody.appendChild(headerRowRel);
+
+    realized.slice().reverse().slice(0, 50).forEach(t => {
+        tradesTableBody.appendChild(createTradeRow(t, false));
     });
+}
+
+function createTradeRow(t, isActive = false) {
+    const row = document.createElement('tr');
+    const color = isActive ? '#fff' : ((t.pnl || 0) >= 0 ? 'var(--neon-green)' : 'var(--neon-red)');
+    const accName = t.account_id || 'Unknown';
+    
+    row.style.opacity = isActive ? '1' : '0.8';
+    if (isActive) row.style.background = 'rgba(0, 255, 157, 0.02)';
+
+    row.innerHTML = `
+        <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div style="font-size: 0.85rem;">${new Date(t.date || t.created_at).toLocaleDateString()}</div>
+            <div style="font-size: 0.65rem; opacity: 0.5; color: ${accName.includes('Failed') ? 'var(--neon-red)' : '#fff'}">${accName}</div>
+        </td>
+        <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #fff; font-family: var(--font-mono);">${t.symbol || 'N/A'}</td>
+        <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.7rem; color: ${(t.direction?.toUpperCase() === 'LONG' || t.direction?.toUpperCase() === 'BUY' || t.type?.toUpperCase() === 'BUY') ? 'var(--neon-green)' : 'var(--neon-red)'};">${(t.direction || t.type || '-').toUpperCase()}</td>
+        <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); color: ${color}; font-weight: bold;">
+            ${isActive ? '<span style="color:var(--text-muted); font-weight: normal; font-size: 0.6rem;">OPEN</span>' : ((t.pnl || 0) >= 0 ? '+' : '') + (t.pnl?.toFixed(2) || '0.00')}
+        </td>
+    `;
+    return row;
 }
 
 function renderChart(data, resets) {
     if (chartInstance) chartInstance.destroy();
+    if (data.length === 0) return;
 
     const gradient = ctx.createLinearGradient(0, 0, 0, 400);
     gradient.addColorStop(0, 'rgba(0, 255, 157, 0.1)');
@@ -199,7 +203,7 @@ function renderChart(data, resets) {
         data: {
             labels: data.map(d => d.x),
             datasets: [{
-                label: 'Equity',
+                label: 'Realized Equity',
                 data: data.map(d => d.y),
                 borderColor: '#00ff9d',
                 backgroundColor: gradient,
@@ -226,64 +230,7 @@ function renderChart(data, resets) {
                 x: { grid: { display: false }, ticks: { color: '#555', maxTicksLimit: 10 } },
                 y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#555' } }
             }
-        },
-        plugins: [{
-            id: 'resets',
-            afterDraw: (chart) => {
-                const {ctx, scales: {x, y}} = chart;
-                resets.forEach(resetIdx => {
-                    const xPos = x.getPixelForValue(chart.data.labels[resetIdx]);
-                    
-                    // Draw vertical line with gradient
-                    const gradient = ctx.createLinearGradient(0, y.top, 0, y.bottom);
-                    gradient.addColorStop(0, 'rgba(255, 59, 48, 1)');
-                    gradient.addColorStop(1, 'rgba(255, 59, 48, 0)');
-                    
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.strokeStyle = gradient;
-                    ctx.lineWidth = 2;
-                    ctx.setLineDash([6, 4]);
-                    ctx.moveTo(xPos, y.top);
-                    ctx.lineTo(xPos, y.bottom);
-                    ctx.stroke();
-                    
-                    // Draw Badge
-                    const label = 'ACCOUNT RESET';
-                    ctx.font = 'bold 10px "Space Grotesk", sans-serif';
-                    const textWidth = ctx.measureText(label).width;
-                    const padding = 6;
-                    
-                    ctx.fillStyle = 'rgba(255, 59, 48, 0.9)';
-                    
-                    // Helper-like drawing for rounded rect
-                    const bx = xPos - (textWidth/2 + padding);
-                    const by = y.top + 10;
-                    const bw = textWidth + (padding * 2);
-                    const bh = 20;
-                    const r = 4;
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(bx + r, by);
-                    ctx.lineTo(bx + bw - r, by);
-                    ctx.quadraticCurveTo(bx + bw, by, bx + bw, by + r);
-                    ctx.lineTo(bx + bw, by + bh - r);
-                    ctx.quadraticCurveTo(bx + bw, by + bh, bx + bw - r, by + bh);
-                    ctx.lineTo(bx + r, by + bh);
-                    ctx.quadraticCurveTo(bx, by + bh, bx, by + bh - r);
-                    ctx.lineTo(bx, by + r);
-                    ctx.quadraticCurveTo(bx, by, bx + r, by);
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    ctx.fillStyle = '#fff';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(label, xPos, y.top + 23);
-                    
-                    ctx.restore();
-                });
-            }
-        }]
+        }
     });
 }
 
