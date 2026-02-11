@@ -6,7 +6,7 @@ const SUPABASE_URL = 'https://htskiitfjiaeupexvalo.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_95k9XN77rpfdoogJThv2eg_WpN29aCd'; 
 
 // Manual Adjustment for Dashboard
-const RESET_CORRECTION = 0; 
+const RESET_CORRECTION = 2359.30; 
 
 // Initialize Supabase
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -149,7 +149,7 @@ function renderTable(active, realized) {
     // 1. ACTIVE POSITIONS SECTION
     if (active.length > 0) {
         const h = document.createElement('tr');
-        h.innerHTML = `<td colspan="4" class="table-section-header">◉ OPEN POSITIONS [MARKET]</td>`;
+        h.innerHTML = `<td colspan="7" class="table-section-header">◉ OPEN POSITIONS [MARKET]</td>`;
         tradesTableBody.appendChild(h);
 
         active.slice().reverse().forEach(t => {
@@ -160,7 +160,7 @@ function renderTable(active, realized) {
     // 2. REALIZED HISTORY SECTION
     if (realized.length > 0) {
         const h = document.createElement('tr');
-        h.innerHTML = `<td colspan="4" class="table-section-header">▽ CLOSED TRADES [REALIZED]</td>`;
+        h.innerHTML = `<td colspan="7" class="table-section-header">▽ CLOSED TRADES [REALIZED]</td>`;
         tradesTableBody.appendChild(h);
 
         realized.slice().reverse().slice(0, 50).forEach(t => {
@@ -176,6 +176,18 @@ function createRow(t, isActive) {
     const statusText = isActive ? '<span class="status-badge-open">LIVE</span>' : (t.pnl >= 0 ? '+' : '') + t.pnl.toFixed(2);
     const pnlColor = isActive ? 'var(--neon-green)' : (t.pnl >= 0 ? 'var(--neon-green)' : 'var(--neon-red)');
 
+    // Parse SL/TP from notes if available
+    let sl = '-', tp = '-';
+    if (t.notes) {
+        const slMatch = t.notes.match(/SL:\s*([\d\.]+)/);
+        const tpMatch = t.notes.match(/TP:\s*([\d\.]+)/);
+        if (slMatch) sl = slMatch[1];
+        if (tpMatch) tp = tpMatch[1];
+    }
+    
+    // Fallback for entry if not set
+    const entry = t.entry_price ? t.entry_price : '-';
+
     tr.innerHTML = `
         <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.03);">
             <div style="font-size: 0.8rem;">${new Date(t.date || t.created_at).toLocaleDateString()}</div>
@@ -183,6 +195,9 @@ function createRow(t, isActive) {
         </td>
         <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.03); font-family: var(--font-mono); color: #fff;">${t.symbol}</td>
         <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.7rem; color: ${(t.direction === 'LONG' || t.direction === 'BUY') ? 'var(--neon-green)' : 'var(--neon-red)'}">${t.direction}</td>
+        <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.03); font-family: var(--font-mono); font-size: 0.8rem;">${entry}</td>
+        <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.03); font-family: var(--font-mono); font-size: 0.8rem; color: var(--neon-red);">${sl}</td>
+        <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.03); font-family: var(--font-mono); font-size: 0.8rem; color: var(--neon-green);">${tp}</td>
         <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.03); color: ${pnlColor}; font-weight: 700; text-align: right;">${statusText}</td>
     `;
     return tr;
