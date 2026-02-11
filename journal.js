@@ -126,7 +126,7 @@ function populateTable(trades) {
         row.innerHTML = `
             <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">${new Date(t.date || t.created_at).toLocaleDateString()}</td>
             <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #fff; font-family: var(--font-mono);">${t.symbol || 'N/A'}</td>
-            <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.7rem; color: ${t.type === 'BUY' ? 'var(--neon-green)' : 'var(--neon-red)'};">${t.type || '-'}</td>
+            <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.7rem; color: ${(t.direction?.toUpperCase() === 'LONG' || t.direction?.toUpperCase() === 'BUY' || t.type?.toUpperCase() === 'BUY') ? 'var(--neon-green)' : 'var(--neon-red)'};">${(t.direction || t.type || '-').toUpperCase()}</td>
             <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); color: ${color}; font-weight: bold;">${t.pnl >= 0 ? '+' : ''}${t.pnl?.toFixed(2) || '0.00'}</td>
         `;
         tradesTableBody.appendChild(row);

@@ -5,7 +5,14 @@ const SUPABASE_URL = 'https://htskiitfjiaeupexvalo.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_95k9XN77rpfdoogJThv2eg_WpN29aCd';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const store = { trades: [], sessions: [], debts: [], challenges: [] };
+const store = { 
+    trades: [], 
+    sessions: [], 
+    debts: [], 
+    challenges: [],
+    blog: [],
+    freelance: []
+};
 
 document.addEventListener('DOMContentLoaded', async () => {
     updateClock();
@@ -17,16 +24,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function forceReload() {
     try {
-        const [t, s, d, c] = await Promise.all([
+        const [t, s, d, c, b, f] = await Promise.all([
             supabase.from('trades').select('*').order('date', { ascending: false }),
             supabase.from('focus_sessions').select('*').eq('phase', 'flow'),
             supabase.from('debts').select('*').order('date', { ascending: false }),
-            supabase.from('challenges').select('*').order('id', { ascending: true })
+            supabase.from('challenges').select('*').order('id', { ascending: true }),
+            supabase.from('blog_posts').select('*').order('created_at', { ascending: false }),
+            supabase.from('freelance_projects').select('*').order('created_at', { ascending: false })
         ]);
         store.trades = t.data || [];
         store.sessions = s.data || [];
         store.debts = d.data || [];
         store.challenges = c.data || [];
+        store.blog = b.data || [];
+        store.freelance = f.data || [];
         render();
     } catch (e) { console.error(e); }
 }
@@ -62,7 +73,20 @@ function render() {
     const debtBar = document.getElementById('debt-progress-bar');
     if (debtBar) debtBar.style.width = Math.min((totalPaid/300000)*100, 100) + '%';
 
-    // 4. Challenges
+    // 4. Blog (New Logic)
+    updateText('blog-hits', store.blog.length);
+    const blogBar = document.getElementById('blog-progress-bar');
+    // Предположим, что 1000 — это цель подписчиков, а прогресс берем оттуда (пока 0)
+    if (blogBar) blogBar.style.width = '0%'; 
+
+    // 5. Freelance (New Logic)
+    const totalRevenue = store.freelance.filter(p => p.status === 'done').reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+    updateText('freelance-revenue', (totalRevenue / 1000).toFixed(1));
+    updateText('freelance-count', store.freelance.length);
+    const frBar = document.getElementById('freelance-progress-bar');
+    if (frBar) frBar.style.width = Math.min((totalRevenue/20000)*100, 100) + '%';
+
+    // 6. Challenges
     const challengesContainer = document.getElementById('challenges-container');
     if (challengesContainer) {
         challengesContainer.innerHTML = store.challenges.map(c => {
@@ -122,6 +146,15 @@ function generateModalStats(id) {
         const weekly = store.debts.filter(d => new Date(d.date) >= startOfWeek).reduce((s, d) => s + (d.amount || 0), 0);
         return `<div class="stat-row"><span>Total Paid:</span><b>${(total/1000).toFixed(2)}k</b></div>
                 <div class="stat-row"><span>This Week:</span><b>${(weekly/1000).toFixed(2)}k</b></div>`;
+    }
+    if (id === 'card-blog') {
+        return `<div class="stat-row"><span>Total Posts:</span><b>${store.blog.length}</b></div>
+                <div class="stat-row"><span>Last Post:</span><b>${store.blog[0]?.title || 'None'}</b></div>`;
+    }
+    if (id === 'card-freelance') {
+        const total = store.freelance.filter(p => p.status === 'done').reduce((s, p) => s + (parseFloat(p.amount) || 0), 0);
+        return `<div class="stat-row"><span>Total Revenue:</span><b>${total.toLocaleString()} ₽</b></div>
+                <div class="stat-row"><span>Active Projects:</span><b>${store.freelance.filter(p => p.status === 'wip').length}</b></div>`;
     }
     return "<p>More metrics inside!</p>";
 }
