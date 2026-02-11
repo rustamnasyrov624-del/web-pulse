@@ -38,10 +38,22 @@ async function fetchTrades() {
 async function initJournal() {
     allTrades = await fetchTrades();
     
-    // Normalize Account Names
+    // Normalize Account Names (Hard Mapping Fallback)
     allTrades.forEach(t => {
+        const acc = t.account_id || '';
+        
+        // 1. Map known active challenges
+        if (acc === 'Funding Pips' || acc === 'FundingPips #003' || acc === 'Funding Pips P1') {
+            t.account_id = 'Funding Pips P1';
+        } else if (acc === 'SpiceProp' || acc === 'SpiceProp #002' || acc === 'SpiceProp P1') {
+            t.account_id = 'SpiceProp P1';
+        } else if (acc === 'SpiceProp #001 (Failed)' || acc === 'SpiceProp #001') {
+            t.account_id = 'SpiceProp #001 (Failed)';
+        }
+        
+        // 2. Default for nulls
         if (!t.account_id) {
-            t.account_id = 'Legacy / Uncategorized';
+            t.account_id = 'History (Legacy)';
         }
     });
     
