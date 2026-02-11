@@ -40,17 +40,9 @@ async function initJournal() {
     
     // Normalize Account Names
     allTrades.forEach(t => {
-        if (!t.account_id) return;
-
-        // Auto-fix labels for consistency
-        if (t.account_id === 'SpiceProp #001') t.account_id = 'SpiceProp #001 (Failed)';
-        if (t.account_id === 'SpiceProp #002') t.account_id = 'SpiceProp #002 (Failed)';
-        if (t.account_id === 'FundingPips #003') t.account_id = 'Funding Pips (Failed)';
-        if (t.account_id === 'Funding Pips #003 (Failed)') t.account_id = 'Funding Pips (Failed)';
-        
-        // Phase normalization
-        if (t.account_id === 'Funding Pips') t.account_id = 'Funding Pips P1';
-        if (t.account_id === 'SpiceProp') t.account_id = 'SpiceProp P1';
+        if (!t.account_id) {
+            t.account_id = 'Legacy / Uncategorized';
+        }
     });
     
     updateView('all');
@@ -60,15 +52,16 @@ async function initJournal() {
 function setupFilters() {
     const accounts = [...new Set(allTrades.map(t => t.account_id).filter(Boolean))];
     
-    const active = accounts.filter(acc => !acc.includes('Failed'));
-    const archive = accounts.filter(acc => acc.includes('Failed'));
+    // Categorization: Active (contains P1/P2) vs History
+    const active = accounts.filter(acc => acc.includes('P1') || acc.includes('P2'));
+    const archive = accounts.filter(acc => !acc.includes('P1') && !acc.includes('P2'));
 
     filterContainer.innerHTML = '';
     
-    // Header for All
+    // All Accounts button
     const allBtn = document.createElement('button');
     allBtn.className = 'filter-btn active';
-    allBtn.innerText = 'All Accounts';
+    allBtn.innerText = 'Total Performance';
     allBtn.onclick = () => {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         allBtn.classList.add('active');
@@ -79,13 +72,13 @@ function setupFilters() {
     // Active Challenges Section
     if (active.length > 0) {
         const title = document.createElement('div');
-        title.style.cssText = 'width: 100%; margin: 20px 0 10px 0; font-size: 0.6rem; opacity: 0.3; letter-spacing: 2px; text-transform: uppercase;';
-        title.innerText = 'Active Challenges';
+        title.className = 'section-label';
+        title.innerText = 'Active Challenges (P1 / P2)';
         filterContainer.appendChild(title);
         
         active.sort().forEach(acc => {
             const btn = document.createElement('button');
-            btn.className = 'filter-btn';
+            btn.className = 'filter-btn challenge-btn';
             btn.innerText = acc;
             btn.onclick = () => {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -99,8 +92,8 @@ function setupFilters() {
     // Archive Section
     if (archive.length > 0) {
         const title = document.createElement('div');
-        title.style.cssText = 'width: 100%; margin: 20px 0 10px 0; font-size: 0.6rem; opacity: 0.3; letter-spacing: 2px; text-transform: uppercase;';
-        title.innerText = 'Archive / Failed';
+        title.className = 'section-label';
+        title.innerText = 'Archives & History';
         filterContainer.appendChild(title);
         
         archive.sort().forEach(acc => {
@@ -135,8 +128,8 @@ function updateView(accountFilter) {
             y: cumulative
         });
 
-        // "RESET" Logic: If account name contains "(Failed)" or symbol is "**RESET**"
-        if (t.account_id && t.account_id.includes('(Failed)')) {
+        // "RESET" Logic: If account name contains "Failed" or symbol is "**RESET**"
+        if (t.account_id && t.account_id.includes('Failed')) {
             const nextTrade = filteredTrades[index + 1];
             if (!nextTrade || nextTrade.account_id !== t.account_id) {
                 resets.push(chartData.length - 1);
@@ -156,7 +149,7 @@ function updateView(accountFilter) {
     totalPnlDisplay.style.color = cumulative >= 0 ? 'var(--neon-green)' : 'var(--neon-red)';
 
     // Update Table
-    populateTable(filteredTrades.slice().reverse().slice(0, 20));
+    populateTable(filteredTrades.slice().reverse().slice(0, 50));
 
     // Render Chart
     renderChart(chartData, resets);

@@ -358,33 +358,52 @@ header {
 }
 
 /* TRADING JOURNAL SPECIALS */
+.section-label {
+    width: 100%;
+    margin: 24px 0 12px 0;
+    font-size: 0.65rem;
+    opacity: 0.4;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-family: var(--font-mono);
+}
+
 .filter-btn {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--glass-border);
     color: var(--text-secondary);
-    padding: 8px 16px;
+    padding: 10px 20px;
     border-radius: 8px;
     cursor: pointer;
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     transition: var(--transition);
+    margin-right: 8px;
+    margin-bottom: 8px;
 }
 
 .filter-btn:hover {
     border-color: var(--neon-green);
     color: #fff;
+    background: rgba(0, 255, 157, 0.05);
 }
 
 .filter-btn.active {
     background: var(--neon-green);
     color: #000;
     border-color: var(--neon-green);
-    box-shadow: 0 0 15px var(--neon-green-glow);
+    box-shadow: 0 0 20px var(--neon-green-glow);
+    font-weight: 600;
+}
+
+.challenge-btn {
+    border-left: 3px solid var(--neon-green);
 }
 
 .archive-btn {
-    opacity: 0.6;
+    opacity: 0.5;
     border-style: dashed;
+    font-style: italic;
 }
 
 .archive-btn:hover {
