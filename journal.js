@@ -5,7 +5,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 const SUPABASE_URL = 'https://htskiitfjiaeupexvalo.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_95k9XN77rpfdoogJThv2eg_WpN29aCd'; 
 
-// Reset Correction
+// Manual Adjustment for Dashboard
 const RESET_CORRECTION = 0; 
 
 // Initialize Supabase
@@ -18,7 +18,7 @@ const tradesTableBody = document.getElementById('trades-table-body');
 const filterContainer = document.getElementById('account-filters');
 
 let chartInstance = null;
-let allTrades = [];
+let allTradesRaw = [];
 
 async function fetchTrades() {
     try {
@@ -36,31 +36,53 @@ async function fetchTrades() {
 }
 
 async function initJournal() {
-    allTrades = await fetchTrades();
+    allTradesRaw = await fetchTrades();
     
-    // Normalize Account Names (Legacy fix if any nulls left)
-    allTrades.forEach(t => {
-        if (!t.account_id) {
-            t.account_id = 'Legacy / History';
+    // HEURISTIC CLEANING & LABELING
+    // We only process trades that have an account_id or specific markers
+    // This removes import noise and NULL duplicates
+    const cleanedTrades = allTradesRaw.filter(t => {
+        // 1. Must have an account_id
+        if (!t.account_id) return false;
+        
+        // 2. Filter out tiny artifacts (Dust)
+        if (t.pnl !== null && Math.abs(t.pnl) < 0.1 && t.symbol !== '**RESET**') return false;
+        
+        return true;
+    });
+
+    // Label Normalization
+    cleanedTrades.forEach(t => {
+        const acc = t.account_id;
+        
+        // Active Challenges Phase 1
+        if (acc === 'Funding Pips' || acc === 'FundingPips #003' || acc === 'Funding Pips P1') {
+            t.account_id = 'Funding Pips Challenge P1';
+        } else if (acc === 'SpiceProp' || acc === 'SpiceProp #002' || acc === 'SpiceProp P1') {
+            t.account_id = 'SpiceProp Challenge P1';
+        } else if (acc === 'SpiceProp #001') {
+            t.account_id = 'SpiceProp #001 (Failed)';
         }
     });
     
+    window.journalData = cleanedTrades;
     updateView('all');
     setupFilters();
 }
 
 function setupFilters() {
-    const accounts = [...new Set(allTrades.map(t => t.account_id).filter(Boolean))];
+    const data = window.journalData || [];
+    const accounts = [...new Set(data.map(t => t.account_id))];
     
-    const activeAccs = accounts.filter(acc => acc.includes('P1') || acc.includes('P2'));
-    const archiveAccs = accounts.filter(acc => !acc.includes('P1') && !acc.includes('P2'));
+    const activeAccs = accounts.filter(acc => acc.includes('Challenge'));
+    const archiveAccs = accounts.filter(acc => !acc.includes('Challenge'));
 
     filterContainer.innerHTML = '';
     
     // Total button
     const allBtn = document.createElement('button');
     allBtn.className = 'filter-btn active';
-    allBtn.innerText = 'All Challenges';
+    allBtn.innerText = 'TOTAL PORTFOLIO';
     allBtn.onclick = () => {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         allBtn.classList.add('active');
@@ -68,15 +90,14 @@ function setupFilters() {
     };
     filterContainer.appendChild(allBtn);
 
-    // Section Labels
-    const createSection = (titleText, accList, isArchive = false) => {
-        if (accList.length === 0) return;
+    const createSection = (titleText, list, isArchive = false) => {
+        if (list.length === 0) return;
         const title = document.createElement('div');
         title.className = 'section-label';
         title.innerText = titleText;
         filterContainer.appendChild(title);
         
-        accList.sort().forEach(acc => {
+        list.sort().forEach(acc => {
             const btn = document.createElement('button');
             btn.className = `filter-btn ${isArchive ? 'archive-btn' : 'challenge-btn'}`;
             btn.innerText = acc;
@@ -89,127 +110,98 @@ function setupFilters() {
         });
     };
 
-    createSection('Active Challenges', activeAccs);
-    createSection('Archives & History', archiveAccs, true);
+    createSection('Active Cycles', activeAccs);
+    createSection('History & Archive', archiveAccs, true);
 }
 
 function updateView(accountFilter) {
-    let filteredTrades = allTrades;
+    const data = window.journalData || [];
+    let filtered = data;
     if (accountFilter !== 'all') {
-        filteredTrades = allTrades.filter(t => t.account_id === accountFilter);
+        filtered = data.filter(t => t.account_id === accountFilter);
     }
 
-    // Separate Active (pnl is null) and Realized
-    const activePositions = filteredTrades.filter(t => t.pnl === null);
-    const realizedTrades = filteredTrades.filter(t => t.pnl !== null);
+    // DIVIDE: Active vs Realized
+    const active = filtered.filter(t => t.pnl === null);
+    const realized = filtered.filter(t => t.pnl !== null);
 
-    // Calculate cumulative only for realized
+    // Calculate Realized Stats
+    let totalPnL = realized.reduce((sum, t) => sum + (t.pnl || 0), 0) + (accountFilter === 'all' ? RESET_CORRECTION : 0);
+    
+    totalPnlDisplay.innerText = `$${totalPnL.toFixed(2)}`;
+    totalPnlDisplay.style.color = totalPnL >= 0 ? 'var(--neon-green)' : 'var(--neon-red)';
+
+    // Table Content
+    renderTable(active, realized);
+
+    // Chart (Realized Equity)
     let cumulative = 0;
-    const chartData = [];
-    const resets = [];
-
-    realizedTrades.forEach((t, index) => {
-        cumulative += (t.pnl || 0);
-        chartData.push({
-            x: new Date(t.date || t.created_at).toLocaleDateString(),
-            y: cumulative
-        });
-
-        if (t.symbol === '**RESET**') {
-            resets.push(chartData.length - 1);
-        }
+    const chartPoints = realized.map(t => {
+        cumulative += t.pnl;
+        return { x: new Date(t.date || t.created_at).toLocaleDateString(), y: cumulative };
     });
-
-    if (accountFilter === 'all') {
-        cumulative += RESET_CORRECTION;
-        if (chartData.length > 0) chartData[chartData.length - 1].y = cumulative;
-    }
-
-    // Update Total Display
-    totalPnlDisplay.innerText = `$${cumulative.toFixed(2)}`;
-    totalPnlDisplay.style.color = cumulative >= 0 ? 'var(--neon-green)' : 'var(--neon-red)';
-
-    // Update Table with Sections
-    renderTable(activePositions, realizedTrades);
-
-    // Render Chart
-    renderChart(chartData, resets);
+    renderChart(chartPoints);
 }
 
 function renderTable(active, realized) {
     tradesTableBody.innerHTML = '';
 
-    // 1. Render Active Positions Header
+    // 1. ACTIVE POSITIONS SECTION
     if (active.length > 0) {
-        const headerRow = document.createElement('tr');
-        headerRow.innerHTML = `
-            <td colspan="4" style="padding: 20px 12px 10px 12px; font-family: var(--font-heading); font-size: 0.7rem; color: var(--neon-green); opacity: 0.8; letter-spacing: 2px;">
-                ◉ CURRENT OPEN POSITIONS (${active.length})
-            </td>
-        `;
-        tradesTableBody.appendChild(headerRow);
+        const h = document.createElement('tr');
+        h.innerHTML = `<td colspan="4" class="table-section-header">◉ OPEN POSITIONS [MARKET]</td>`;
+        tradesTableBody.appendChild(h);
 
         active.slice().reverse().forEach(t => {
-            tradesTableBody.appendChild(createTradeRow(t, true));
+            tradesTableBody.appendChild(createRow(t, true));
         });
     }
 
-    // 2. Render Realized Trades Header
-    const headerRowRel = document.createElement('tr');
-    headerRowRel.innerHTML = `
-        <td colspan="4" style="padding: 30px 12px 10px 12px; font-family: var(--font-heading); font-size: 0.7rem; color: var(--text-secondary); opacity: 0.5; letter-spacing: 2px;">
-            HISTORY / REALIZED TRADES
-        </td>
-    `;
-    tradesTableBody.appendChild(headerRowRel);
+    // 2. REALIZED HISTORY SECTION
+    if (realized.length > 0) {
+        const h = document.createElement('tr');
+        h.innerHTML = `<td colspan="4" class="table-section-header">▽ CLOSED TRADES [REALIZED]</td>`;
+        tradesTableBody.appendChild(h);
 
-    realized.slice().reverse().slice(0, 50).forEach(t => {
-        tradesTableBody.appendChild(createTradeRow(t, false));
-    });
+        realized.slice().reverse().slice(0, 50).forEach(t => {
+            tradesTableBody.appendChild(createRow(t, false));
+        });
+    }
 }
 
-function createTradeRow(t, isActive = false) {
-    const row = document.createElement('tr');
-    const color = isActive ? '#fff' : ((t.pnl || 0) >= 0 ? 'var(--neon-green)' : 'var(--neon-red)');
-    const accName = t.account_id || 'Unknown';
+function createRow(t, isActive) {
+    const tr = document.createElement('tr');
+    if (isActive) tr.className = 'active-pos-row';
     
-    row.style.opacity = isActive ? '1' : '0.8';
-    if (isActive) row.style.background = 'rgba(0, 255, 157, 0.02)';
+    const statusText = isActive ? '<span class="status-badge-open">LIVE</span>' : (t.pnl >= 0 ? '+' : '') + t.pnl.toFixed(2);
+    const pnlColor = isActive ? 'var(--neon-green)' : (t.pnl >= 0 ? 'var(--neon-green)' : 'var(--neon-red)');
 
-    row.innerHTML = `
-        <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <div style="font-size: 0.85rem;">${new Date(t.date || t.created_at).toLocaleDateString()}</div>
-            <div style="font-size: 0.65rem; opacity: 0.5; color: ${accName.includes('Failed') ? 'var(--neon-red)' : '#fff'}">${accName}</div>
+    tr.innerHTML = `
+        <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.03);">
+            <div style="font-size: 0.8rem;">${new Date(t.date || t.created_at).toLocaleDateString()}</div>
+            <div style="font-size: 0.6rem; opacity: 0.4;">${t.account_id}</div>
         </td>
-        <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #fff; font-family: var(--font-mono);">${t.symbol || 'N/A'}</td>
-        <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.7rem; color: ${(t.direction?.toUpperCase() === 'LONG' || t.direction?.toUpperCase() === 'BUY' || t.type?.toUpperCase() === 'BUY') ? 'var(--neon-green)' : 'var(--neon-red)'};">${(t.direction || t.type || '-').toUpperCase()}</td>
-        <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); color: ${color}; font-weight: bold;">
-            ${isActive ? '<span style="color:var(--text-muted); font-weight: normal; font-size: 0.6rem;">OPEN</span>' : ((t.pnl || 0) >= 0 ? '+' : '') + (t.pnl?.toFixed(2) || '0.00')}
-        </td>
+        <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.03); font-family: var(--font-mono); color: #fff;">${t.symbol}</td>
+        <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.7rem; color: ${(t.direction === 'LONG' || t.direction === 'BUY') ? 'var(--neon-green)' : 'var(--neon-red)'}">${t.direction}</td>
+        <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.03); color: ${pnlColor}; font-weight: 700; text-align: right;">${statusText}</td>
     `;
-    return row;
+    return tr;
 }
 
-function renderChart(data, resets) {
+function renderChart(points) {
     if (chartInstance) chartInstance.destroy();
-    if (data.length === 0) return;
-
-    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-    gradient.addColorStop(0, 'rgba(0, 255, 157, 0.1)');
-    gradient.addColorStop(1, 'rgba(0, 255, 157, 0)');
+    if (points.length === 0) return;
 
     chartInstance = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: data.map(d => d.x),
+            labels: points.map(p => p.x),
             datasets: [{
-                label: 'Realized Equity',
-                data: data.map(d => d.y),
+                data: points.map(p => p.y),
                 borderColor: '#00ff9d',
-                backgroundColor: gradient,
+                backgroundColor: 'rgba(0, 255, 157, 0.05)',
                 borderWidth: 2,
                 pointRadius: 0,
-                pointHoverRadius: 5,
                 fill: true,
                 tension: 0.2
             }]
@@ -217,18 +209,10 @@ function renderChart(data, resets) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: 'rgba(10, 10, 15, 0.9)',
-                    titleColor: '#fff',
-                    borderColor: 'rgba(255,255,255,0.1)',
-                    borderWidth: 1
-                }
-            },
+            plugins: { legend: { display: false } },
             scales: {
-                x: { grid: { display: false }, ticks: { color: '#555', maxTicksLimit: 10 } },
-                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#555' } }
+                x: { grid: { display: false }, ticks: { color: '#444', maxTicksLimit: 8 } },
+                y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#444' } }
             }
         }
     });

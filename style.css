@@ -368,6 +368,30 @@ header {
     font-family: var(--font-mono);
 }
 
+.table-section-header {
+    padding: 30px 12px 10px 12px;
+    font-family: var(--font-heading);
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    opacity: 0.6;
+    letter-spacing: 2px;
+    background: rgba(255,255,255,0.01);
+}
+
+.active-pos-row {
+    background: rgba(0, 255, 157, 0.03);
+}
+
+.status-badge-open {
+    background: var(--neon-green);
+    color: #000;
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 800;
+    box-shadow: 0 0 10px var(--neon-green-glow);
+}
+
 .filter-btn {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--glass-border);
