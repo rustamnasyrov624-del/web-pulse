@@ -42,12 +42,13 @@ async function initJournal() {
     allTrades.forEach(t => {
         if (!t.account_id) return;
 
-        // Auto-fix labels
+        // Auto-fix labels for consistency
         if (t.account_id === 'SpiceProp #001') t.account_id = 'SpiceProp #001 (Failed)';
         if (t.account_id === 'SpiceProp #002') t.account_id = 'SpiceProp #002 (Failed)';
         if (t.account_id === 'FundingPips #003') t.account_id = 'Funding Pips (Failed)';
+        if (t.account_id === 'Funding Pips #003 (Failed)') t.account_id = 'Funding Pips (Failed)';
         
-        // Active challenge normalization
+        // Phase normalization
         if (t.account_id === 'Funding Pips') t.account_id = 'Funding Pips P1';
         if (t.account_id === 'SpiceProp') t.account_id = 'SpiceProp P1';
     });
@@ -58,26 +59,62 @@ async function initJournal() {
 
 function setupFilters() {
     const accounts = [...new Set(allTrades.map(t => t.account_id).filter(Boolean))];
-    filterContainer.innerHTML = '<button class="filter-btn active" data-filter="all">All Accounts</button>';
     
-    accounts.forEach(acc => {
-        const btn = document.createElement('button');
-        btn.className = 'filter-btn';
-        btn.innerText = acc;
-        btn.onclick = (e) => {
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            updateView(acc);
-        };
-        filterContainer.appendChild(btn);
-    });
+    const active = accounts.filter(acc => !acc.includes('Failed'));
+    const archive = accounts.filter(acc => acc.includes('Failed'));
 
-    const allBtn = filterContainer.querySelector('[data-filter="all"]');
-    allBtn.onclick = (e) => {
+    filterContainer.innerHTML = '';
+    
+    // Header for All
+    const allBtn = document.createElement('button');
+    allBtn.className = 'filter-btn active';
+    allBtn.innerText = 'All Accounts';
+    allBtn.onclick = () => {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         allBtn.classList.add('active');
         updateView('all');
     };
+    filterContainer.appendChild(allBtn);
+
+    // Active Challenges Section
+    if (active.length > 0) {
+        const title = document.createElement('div');
+        title.style.cssText = 'width: 100%; margin: 20px 0 10px 0; font-size: 0.6rem; opacity: 0.3; letter-spacing: 2px; text-transform: uppercase;';
+        title.innerText = 'Active Challenges';
+        filterContainer.appendChild(title);
+        
+        active.sort().forEach(acc => {
+            const btn = document.createElement('button');
+            btn.className = 'filter-btn';
+            btn.innerText = acc;
+            btn.onclick = () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                updateView(acc);
+            };
+            filterContainer.appendChild(btn);
+        });
+    }
+
+    // Archive Section
+    if (archive.length > 0) {
+        const title = document.createElement('div');
+        title.style.cssText = 'width: 100%; margin: 20px 0 10px 0; font-size: 0.6rem; opacity: 0.3; letter-spacing: 2px; text-transform: uppercase;';
+        title.innerText = 'Archive / Failed';
+        filterContainer.appendChild(title);
+        
+        archive.sort().forEach(acc => {
+            const btn = document.createElement('button');
+            btn.className = 'filter-btn archive-btn';
+            btn.innerText = acc;
+            btn.onclick = () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                updateView(acc);
+            };
+            filterContainer.appendChild(btn);
+        });
+    }
 }
 
 function updateView(accountFilter) {

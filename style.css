@@ -358,25 +358,37 @@ header {
 }
 
 /* TRADING JOURNAL SPECIALS */
-.reset-marker {
-    position: absolute;
-    width: 2px;
-    height: 100%;
-    background: var(--neon-red);
-    box-shadow: 0 0 10px var(--neon-red-glow);
-    z-index: 5;
+.filter-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    transition: var(--transition);
 }
 
-.reset-label {
-    position: absolute;
-    top: 10px;
-    transform: translateX(-50%);
-    background: var(--neon-red);
+.filter-btn:hover {
+    border-color: var(--neon-green);
     color: #fff;
-    padding: 2px 8px;
-    font-size: 0.6rem;
-    font-family: var(--font-mono);
-    border-radius: 4px;
+}
+
+.filter-btn.active {
+    background: var(--neon-green);
+    color: #000;
+    border-color: var(--neon-green);
+    box-shadow: 0 0 15px var(--neon-green-glow);
+}
+
+.archive-btn {
+    opacity: 0.6;
+    border-style: dashed;
+}
+
+.archive-btn:hover {
+    opacity: 1;
 }
 
 /* NAVIGATION LINKS */
